@@ -1,47 +1,79 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { LoginPage } from "./pages/LoginPage";
-import { PasswordPage } from "./pages/PasswordPage";
-import { Layout } from "./components/Layout";
-import { HomePage } from './pages/HomePage';
-import { TopUpPage } from './pages/TopUpPage';
-import { CardTransferPage } from './pages/CardTransferPage';
-import { MorePage } from './pages/MorePage';
-import { AddAccountPage } from './pages/AddAccountPage';
-import { NewAccountPage } from './pages/NewAccountPage';
-import { NewCardPage } from './pages/NewCardPage';
+import { useEffect } from 'react';
+import { BrowserRouter } from 'react-router-dom';
+import { Provider } from 'react-redux';
+import { store } from './store';
+import { AppRoutes } from './components/AppRoutes';
+import { storageService } from './services/storageService';
+import { setIsLoggedIn, setUser, clearAllData } from './store/slices/authSlice';
+import { fetchAccounts } from './store/slices/accountSlice';
 
-// Временные компоненты для табов
-const PaymentsPage = () => <div className="p-4">Страница платежей</div>;
-const CityPage = () => <div className="p-4">Страница города</div>;
-const ChatPage = () => <div className="p-4">Страница чата</div>;
+const App = () => {
+  useEffect(() => {
+    const initApp = async () => {
+      try {
+        // Проверяем состояние авторизации и данные пользователя
+        const [isLoggedIn, userId, phone, deviceId] = await Promise.all([
+          storageService.getItem<boolean>('isLoggedIn'),
+          storageService.getItem<string>('userId'),
+          storageService.getItem<string>('phone'),
+          storageService.getItem<string>('deviceId')
+        ]);
 
-function App() {
+        console.log('Initializing app with user data:', {
+          isLoggedIn,
+          userId,
+          phone,
+          deviceId
+        });
+
+        // Если нет сохраненных данных, очищаем все хранилища
+        if (!userId && !phone) {
+          console.log('No saved data found, clearing all storages');
+          await storageService.clearAllStorages();
+          return;
+        }
+
+        // Восстанавливаем состояние авторизации
+        if (isLoggedIn && userId && phone) {
+          store.dispatch(setIsLoggedIn(true));
+          store.dispatch(setUser({ id: userId, phone, deviceId: deviceId || '' }));
+        }
+
+        // Загружаем счета независимо от состояния авторизации
+        store.dispatch(fetchAccounts());
+      } catch (error) {
+        console.error('Error initializing app:', error);
+      }
+    };
+
+    initApp();
+  }, []);
+
+  // Обработка удаления приложения
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      // Проверяем, является ли это удалением приложения
+      if (document.visibilityState === 'hidden') {
+        store.dispatch(clearAllData());
+      }
+    };
+
+    // Добавляем обработчик события beforeunload
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    // Очищаем обработчик при размонтировании
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, []);
+
   return (
-    <BrowserRouter future={{ v7_startTransition: true }}>
-      <Routes>
-        {/* Публичные маршруты */}
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/password" element={<PasswordPage />} />
-        
-        {/* Защищенные маршруты */}
-        <Route path="/" element={<Layout />}>
-          <Route index element={<HomePage />} />
-          <Route path="top-up" element={<TopUpPage />} />
-          <Route path="card-transfer" element={<CardTransferPage />} />
-          <Route path="payments" element={<PaymentsPage />} />
-          <Route path="city" element={<CityPage />} />
-          <Route path="chat" element={<ChatPage />} />
-          <Route path="more" element={<MorePage />} />
-          <Route path="add-account" element={<AddAccountPage />} />
-          <Route path="add-account/new" element={<NewAccountPage />} />
-          <Route path="add-card/:accountId" element={<NewCardPage />} />
-        </Route>
-
-        {/* Редирект на логин для неизвестных маршрутов */}
-        <Route path="*" element={<Navigate to="/login" />} />
-      </Routes>
-    </BrowserRouter>
+    <Provider store={store}>
+      <BrowserRouter>
+        <AppRoutes />
+      </BrowserRouter>
+    </Provider>
   );
-}
+};
 
 export default App;

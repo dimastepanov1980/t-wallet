@@ -2,13 +2,14 @@ import React, { useState } from 'react';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
-import { addCard } from '../store/slices/accountSlice';
+import { addCardToAccount } from '../store/slices/accountSlice';
 import { CardType } from '../types/account';
+import { AppDispatch } from '../store';
 
 export const NewCardPage = () => {
+  const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
-  const dispatch = useDispatch();
-  const { accountId } = useParams();
+  const { accountId } = useParams<{ accountId: string }>();
   
   const [formData, setFormData] = useState({
     name: '',
@@ -16,6 +17,9 @@ export const NewCardPage = () => {
     cardNumber: '',
     type: 'mastercard' as CardType,
   });
+
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -25,15 +29,22 @@ export const NewCardPage = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!accountId) {
-      console.error('Account ID is missing');
-      return;
+    setError('');
+    setIsLoading(true);
+
+    try {
+      await dispatch(addCardToAccount({
+        accountId: accountId!,
+        card: formData
+      })).unwrap();
+      navigate('/add-account');
+    } catch (err) {
+      setError('Не удалось добавить карту. Пожалуйста, попробуйте снова.');
+    } finally {
+      setIsLoading(false);
     }
-    
-    dispatch(addCard({ accountId, card: formData }));
-    navigate(-1);
   };
 
   return (

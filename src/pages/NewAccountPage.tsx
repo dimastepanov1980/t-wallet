@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
-import { addAccount } from '../store/slices/accountSlice';
+import { createAccount } from '../store/slices/accountSlice';
 import { Currency } from '../types/account';
+import { AppDispatch } from '../store';
 
 const CURRENCY_SYMBOLS: Record<Currency, string> = {
   RUB: '₽',
@@ -18,15 +19,16 @@ const CURRENCY_NAMES: Record<Currency, string> = {
 };
 
 export const NewAccountPage = () => {
+  const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
-  const dispatch = useDispatch();
-  
   const [formData, setFormData] = useState({
     name: '',
     ownerName: '',
     accountNumber: '',
     currency: 'RUB' as Currency
   });
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -36,10 +38,19 @@ export const NewAccountPage = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    dispatch(addAccount(formData));
-    navigate(-1);
+    setError('');
+    setIsLoading(true);
+
+    try {
+      await dispatch(createAccount(formData)).unwrap();
+      navigate('/add-account');
+    } catch (err) {
+      setError('Не удалось создать счет. Пожалуйста, попробуйте снова.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -124,11 +135,16 @@ export const NewAccountPage = () => {
             </label>
           </div>
 
+          {error && (
+            <div className="text-red-500 text-sm">{error}</div>
+          )}
+
           <button
             type="submit"
-            className="w-full bg-yellow-400 text-black rounded-xl py-4 px-6 text-lg font-medium hover:bg-yellow-500 transition-colors"
+            disabled={isLoading}
+            className="w-full bg-yellow-400 text-black rounded-xl py-4 px-6 text-lg font-medium hover:bg-yellow-500 transition-colors disabled:opacity-50"
           >
-            Создать счет
+            {isLoading ? 'Создание счета...' : 'Создать счет'}
           </button>
         </form>
       </div>

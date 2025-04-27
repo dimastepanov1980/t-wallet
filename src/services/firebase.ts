@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, query, where, getDocs, doc, updateDoc, Timestamp } from 'firebase/firestore';
+import { getFirestore, collection, query, where, getDocs, doc, updateDoc, Timestamp, getDoc } from 'firebase/firestore';
 
 const firebaseConfig = {
   // Add your Firebase config here
@@ -65,5 +65,30 @@ export const updateDeviceId = async (userId: string, deviceId: string): Promise<
   } catch (error) {
     console.error('Error updating deviceId:', error);
     return false;
+  }
+};
+
+interface UserData {
+  id: string;
+  phone: string;
+  deviceId?: string;
+  password?: string;
+  allowed?: boolean;
+  expires_at?: Timestamp;
+}
+
+export const getUserById = async (userId: string): Promise<UserData | null> => {
+  try {
+    const userDoc = await getDoc(doc(db, 'users', userId));
+    if (userDoc.exists()) {
+      return {
+        id: userDoc.id,
+        ...userDoc.data()
+      } as UserData;
+    }
+    return null;
+  } catch (error) {
+    console.error('Error getting user by ID:', error);
+    return null;
   }
 }; 

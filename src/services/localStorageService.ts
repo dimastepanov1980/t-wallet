@@ -1,16 +1,21 @@
+import localforage from 'localforage';
 import { Account, Card, Transaction } from '../types/account';
-import { NewAccountFormData } from '../store/slices/accountSlice';
-import { v4 as uuidv4 } from 'uuid';
+
 
 const STORAGE_KEYS = {
-  ACCOUNTS: 'tbank_accounts',
-  SELECTED_ACCOUNT: 'tbank_selected_account',
-  SELECTED_CARD: 'tbank_selected_card'
+  ACCOUNTS: 'accounts',
+  SELECTED_ACCOUNT: 'selectedAccount',
+  SELECTED_CARD: 'selectedCard'
 };
+
+// Инициализация localforage для счетов
+const accountsStore = localforage.createInstance({
+  name: 't-wallet',
+  storeName: 'accounts'
+});
 
 export class LocalStorageService {
   private static instance: LocalStorageService;
-  private readonly ACCOUNTS_KEY = 'accounts';
 
   private constructor() {}
 
@@ -21,105 +26,149 @@ export class LocalStorageService {
     return LocalStorageService.instance;
   }
 
-  // Accounts
-  getAccounts(): Account[] {
-    const accounts = localStorage.getItem(this.ACCOUNTS_KEY);
-    return accounts ? JSON.parse(accounts) : [];
-  }
-
-  saveAccounts(accounts: Account[]): void {
-    localStorage.setItem(this.ACCOUNTS_KEY, JSON.stringify(accounts));
-  }
-
-  addAccount(accountData: NewAccountFormData): Account {
-    const newAccount: Account = {
-      id: uuidv4(),
-      ...accountData,
-      cards: [],
-      balance: 0,
-      monthlyBalances: [],
-      createdAt: new Date().toISOString()
-    };
-
-    const accounts = this.getAccounts();
-    accounts.push(newAccount);
-    this.saveAccounts(accounts);
-
-    return newAccount;
-  }
-
-  // Cards
-  addCard(accountId: string, cardData: Omit<Card, 'id' | 'transactions'>): Card | null {
-    const accounts = this.getAccounts();
-    const accountIndex = accounts.findIndex(acc => acc.id === accountId);
-    
-    if (accountIndex === -1) return null;
-
-    const newCard: Card = {
-      ...cardData,
-      id: Date.now().toString(),
-      transactions: []
-    };
-
-    accounts[accountIndex].cards.push(newCard);
-    this.saveAccounts(accounts);
-    return newCard;
-  }
-
-  // Transactions
-  addTransaction(accountId: string, cardId: string, transaction: Omit<Transaction, 'id'>): Transaction | null {
-    const accounts = this.getAccounts();
-    const account = accounts.find(acc => acc.id === accountId);
-    if (!account) return null;
-
-    const card = account.cards.find(c => c.id === cardId);
-    if (!card) return null;
-
-    const newTransaction: Transaction = {
-      ...transaction,
-      id: Date.now().toString()
-    };
-
-    // Add transaction to card
-    card.transactions.push(newTransaction);
-
-    // Update account balance
-    account.balance += transaction.type === 'incoming' ? transaction.amount : -transaction.amount;
-
-    // Update monthly balance
-    const transactionDate = new Date(transaction.date);
-    const monthlyBalanceIndex = account.monthlyBalances.findIndex(
-      mb => mb.month === transactionDate.getMonth() && mb.year === transactionDate.getFullYear()
-    );
-
-    if (monthlyBalanceIndex === -1) {
-      account.monthlyBalances.push({
-        month: transactionDate.getMonth(),
-        year: transactionDate.getFullYear(),
-        balance: account.balance
-      });
-    } else {
-      account.monthlyBalances[monthlyBalanceIndex].balance = account.balance;
+  async getAccounts(): Promise<Account[]> {
+    try {
+      const accounts = await accountsStore.getItem<Account[]>(STORAGE_KEYS.ACCOUNTS);
+      return accounts || [];
+    } catch (error) {
+      console.error('Error getting accounts:', error);
+      return [];
     }
-
-    this.saveAccounts(accounts);
-    return newTransaction;
   }
 
-  // Selected Account/Card
-  setSelectedAccount(accountId: string): void {
-    localStorage.setItem(STORAGE_KEYS.SELECTED_ACCOUNT, accountId);
+  async saveAccounts(accounts: Account[]): Promise<void> {
+    try {
+      console.log('Saving accounts:', accounts);
+      await accountsStore.setItem(STORAGE_KEYS.ACCOUNTS, accounts);
+      // Проверяем, что данные сохранились
+      const savedAccounts = await accountsStore.getItem<Account[]>(STORAGE_KEYS.ACCOUNTS);
+      console.log('Saved accounts:', savedAccounts);
+    } catch (error) {
+      console.error('Error saving accounts:', error);
+    }
   }
 
-  getSelectedAccount(): string | null {
-    return localStorage.getItem(STORAGE_KEYS.SELECTED_ACCOUNT);
+  async addAccount(accountData: { name: string; ownerName: string; accountNumber: string }): Promise<Account> {
+    try {
+      const accounts = await this.getAccounts();
+      console.log('Current accounts:', accounts);
+      
+      const newAccount: Account = {
+        id: `acc-${Date.now()}`,
+        name: accountData.name,
+        ownerName: accountData.ownerName,
+        accountNumber: accountData.accountNumber,
+        cards: [],
+        currency: 'RUB',
+        balance: 0,
+        monthlyBalances: [],
+        createdAt: new Date().toISOString()
+      };
+      
+      accounts.push(newAccount);
+      await this.saveAccounts(accounts);
+      
+      // Проверяем, что счет добавился
+      const updatedAccounts = await this.getAccounts();
+      console.log('Updated accounts:', updatedAccounts);
+      
+      return newAccount;
+    } catch (error) {
+      console.error('Error adding account:', error);
+      throw error;
+    }
   }
 
-  setSelectedCard(cardId: string): void {
-    localStorage.setItem(STORAGE_KEYS.SELECTED_CARD, cardId);
+  async addCard(accountId: string, cardData: Omit<Card, 'id' | 'transactions'>): Promise<Card | null> {
+    try {
+      const accounts = await this.getAccounts();
+      console.log('Current accounts before adding card:', accounts);
+      
+      const accountIndex = accounts.findIndex(acc => acc.id === accountId);
+      if (accountIndex === -1) {
+        console.error('Account not found:', accountId);
+        return null;
+      }
+
+      const newCard: Card = {
+        id: `card-${Date.now()}`,
+        ...cardData,
+        transactions: []
+      };
+
+      accounts[accountIndex].cards.push(newCard);
+      await this.saveAccounts(accounts);
+      
+      // Проверяем, что карта добавилась
+      const updatedAccounts = await this.getAccounts();
+      console.log('Updated accounts after adding card:', updatedAccounts);
+      
+      return newCard;
+    } catch (error) {
+      console.error('Error adding card:', error);
+      return null;
+    }
   }
 
-  getSelectedCard(): string | null {
-    return localStorage.getItem(STORAGE_KEYS.SELECTED_CARD);
+  async addTransaction(accountId: string, cardId: string, transactionData: Omit<Transaction, 'id'>): Promise<Transaction | null> {
+    try {
+      const accounts = await this.getAccounts();
+      const accountIndex = accounts.findIndex(acc => acc.id === accountId);
+      
+      if (accountIndex === -1) {
+        return null;
+      }
+
+      const cardIndex = accounts[accountIndex].cards.findIndex(card => card.id === cardId);
+      if (cardIndex === -1) {
+        return null;
+      }
+
+      const newTransaction: Transaction = {
+        id: `tr-${Date.now()}`,
+        ...transactionData
+      };
+
+      accounts[accountIndex].cards[cardIndex].transactions.push(newTransaction);
+      await this.saveAccounts(accounts);
+      return newTransaction;
+    } catch (error) {
+      console.error('Error adding transaction:', error);
+      return null;
+    }
+  }
+
+  async setSelectedAccount(accountId: string): Promise<void> {
+    try {
+      await accountsStore.setItem(STORAGE_KEYS.SELECTED_ACCOUNT, accountId);
+    } catch (error) {
+      console.error('Error setting selected account:', error);
+    }
+  }
+
+  async getSelectedAccount(): Promise<string | null> {
+    try {
+      return await accountsStore.getItem<string>(STORAGE_KEYS.SELECTED_ACCOUNT);
+    } catch (error) {
+      console.error('Error getting selected account:', error);
+      return null;
+    }
+  }
+
+  async setSelectedCard(cardId: string): Promise<void> {
+    try {
+      await accountsStore.setItem(STORAGE_KEYS.SELECTED_CARD, cardId);
+    } catch (error) {
+      console.error('Error setting selected card:', error);
+    }
+  }
+
+  async getSelectedCard(): Promise<string | null> {
+    try {
+      return await accountsStore.getItem<string>(STORAGE_KEYS.SELECTED_CARD);
+    } catch (error) {
+      console.error('Error getting selected card:', error);
+      return null;
+    }
   }
 } 

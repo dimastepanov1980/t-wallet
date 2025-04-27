@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { setPhone, setUser, setIsDemo, setDeviceId } from '../store/slices/authSlice';
+import { setUser } from '../store/slices/authSlice';
 import { findUserByPhone, updateDeviceId } from '../services/firebase';
 import { useDeviceId } from '../hooks/useDeviceId';
-import { Timestamp } from 'firebase/firestore';
+import { storageService } from '../services/storageService';
 
 export const LoginPage = () => {
   const [phone, setPhoneInput] = useState('');
@@ -14,78 +14,65 @@ export const LoginPage = () => {
   const navigate = useNavigate();
   const deviceId = useDeviceId();
 
-  const handleLogin = async () => {
-    if (!phone) {
-      setError('Please enter your phone number');
-      return;
-    }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setIsLoading(true);
 
     if (!deviceId) {
-      setError('Device ID not available');
+      setError('ID устройства недоступен');
       return;
     }
 
-    setIsLoading(true);
-    setError('');
-
     try {
+      // Проверяем существование пользователя
       const user = await findUserByPhone(phone);
       
       if (!user) {
-        setError('User not found');
+        setError('Пользователь с таким номером телефона не найден');
         return;
       }
 
-      if (!user.allowed) {
-        setError('Account is not active');
-        return;
-      }
-
-      // Проверяем наличие пароля
-      if (!user.password) {
-        setError('No password set for this account');
-        return;
-      }
-
-      const now = Timestamp.now();
-      if (user.expires_at.seconds < now.seconds) {
-        setError('Account has expired');
-        return;
-      }
-
-      // Check deviceId
-      if (user.deviceId && user.deviceId !== deviceId) {
-        setError('This account is already registered on another device');
-        return;
-      }
-
-      // If no deviceId is set, update it
+      // Если deviceId не установлен, устанавливаем его
       if (!user.deviceId) {
+        console.log('DeviceId not set, setting it now...');
         const success = await updateDeviceId(user.id, deviceId);
         if (!success) {
-          setError('Failed to register device. Please try again.');
+          setError('Не удалось зарегистрировать устройство');
           return;
         }
+        console.log('DeviceId set successfully');
+        // Сохраняем данные в хранилище
+        await Promise.all([
+          storageService.setItem('deviceId', deviceId),
+          storageService.setItem('userId', user.id),
+          storageService.setItem('phone', phone)
+        ]);
+        dispatch(setUser({ id: user.id, phone: user.phone, deviceId: user.deviceId }));
+        navigate('/password');
+        return;
       }
 
-      dispatch(setUser({ userId: user.id, phone: user.phone, password: user.password }));
-      dispatch(setDeviceId(deviceId));
+      // Если deviceId установлен, проверяем совпадение
+      if (user.deviceId !== deviceId) {
+        setError('Этот аккаунт уже зарегистрирован на другом устройстве');
+        return;
+      }
+
+      // Если все проверки пройдены, сохраняем данные и переходим на страницу пароля
+      await Promise.all([
+        storageService.setItem('deviceId', deviceId),
+        storageService.setItem('userId', user.id),
+        storageService.setItem('phone', phone)
+      ]);
+      dispatch(setUser({ id: user.id, phone: user.phone, deviceId: user.deviceId }));
       navigate('/password');
     } catch (err) {
-      setError('An error occurred. Please try again.');
+      console.error('Error in handleSubmit:', err);
+      setError('Произошла ошибка. Пожалуйста, попробуйте снова.');
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleGuestLogin = () => {
-    if (!deviceId) {
-      setError('Device ID not available');
-      return;
-    }
-    dispatch(setIsDemo(true));
-    dispatch(setDeviceId(deviceId));
-    navigate('/home');
   };
 
   return (
@@ -119,18 +106,11 @@ export const LoginPage = () => {
             )}
 
             <button
-              onClick={handleLogin}
+              onClick={handleSubmit}
               disabled={isLoading}
               className="w-full h-14 flex justify-center items-center rounded-xl text-lg font-medium text-black bg-[#ffdd2d] hover:bg-[#ffd42d] disabled:opacity-50"
             >
               {isLoading ? 'Подождите...' : 'Продолжить'}
-            </button>
-
-            <button
-              onClick={handleGuestLogin}
-              className="w-full h-14 flex justify-center items-center rounded-xl text-lg font-medium text-black bg-white border-2 border-[#ffdd2d] hover:bg-[#fff6d6]"
-            >
-              Войти как гость
             </button>
           </div>
         </div>

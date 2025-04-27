@@ -14,8 +14,8 @@ const initialState: TransactionState = {
   transactions: [],
   loading: false,
   error: null,
-  selectedAccountId: LocalStorageService.getInstance().getSelectedAccount(),
-  selectedCardId: LocalStorageService.getInstance().getSelectedCard()
+  selectedAccountId: null,
+  selectedCardId: null
 };
 
 export type NewTransaction = Omit<Transaction, 'id'>;
@@ -34,18 +34,18 @@ const transactionSlice = createSlice({
         return;
       }
       
-      const newTransaction = storageService.addTransaction(
+      storageService.addTransaction(
         state.selectedAccountId,
         state.selectedCardId,
         action.payload
-      );
-      
-      if (newTransaction) {
-        state.transactions.push(newTransaction);
-        state.error = null;
-      } else {
-        state.error = 'Failed to create transaction';
-      }
+      ).then(newTransaction => {
+        if (newTransaction) {
+          state.transactions.push(newTransaction);
+          state.error = null;
+        } else {
+          state.error = 'Failed to create transaction';
+        }
+      });
     },
     setSelectedAccount: (state, action: PayloadAction<string>) => {
       state.selectedAccountId = action.payload;

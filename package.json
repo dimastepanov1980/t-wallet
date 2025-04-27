@@ -12,7 +12,9 @@
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
+    "@types/localforage": "^0.0.33",
     "firebase": "^11.6.0",
+    "localforage": "^1.10.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router-dom": "^6.30.0"

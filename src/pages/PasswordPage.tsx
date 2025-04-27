@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { setPassword } from '../store/slices/authSlice';
+import { setPassword, setIsLoggedIn } from '../store/slices/authSlice';
 import { updatePassword } from '../services/firebase';
 import { RootState } from '../store';
+import { storageService } from '../services/storageService';
 
 const PinDots = ({ length, filled }: { length: number; filled: number }) => {
   return (
@@ -26,6 +27,7 @@ export const PasswordPage = () => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isSettingNewPassword, setIsSettingNewPassword] = useState(false);
+  const [isConfirmingPassword, setIsConfirmingPassword] = useState(false);
   
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -33,19 +35,48 @@ export const PasswordPage = () => {
   const { full_name } = useSelector((state: RootState) => state.user);
 
   useEffect(() => {
+    const checkStoredCredentials = async () => {
+      console.log('PasswordPage mounted, current state:', {
+        userId,
+        phone,
+        currentPassword,
+        storedUserId: await storageService.getItem<string>('userId'),
+        storedPhone: await storageService.getItem<string>('phone'),
+        isLoggedIn: await storageService.getItem<boolean>('isLoggedIn')
+      });
+
     if (!userId || !phone) {
+        // Проверяем, есть ли сохраненные данные в хранилище
+        const [storedUserId, storedPhone] = await Promise.all([
+          storageService.getItem<string>('userId'),
+          storageService.getItem<string>('phone')
+        ]);
+        
+        console.log('Checking storage:', {
+          storedUserId,
+          storedPhone
+        });
+
+        if (!storedUserId || !storedPhone) {
+          console.log('No stored credentials found, redirecting to login');
       navigate('/login');
       return;
     }
-    setIsSettingNewPassword(!currentPassword);
+      }
+      setIsSettingNewPassword(!currentPassword);
+    };
+
+    checkStoredCredentials();
   }, [userId, phone, currentPassword, navigate]);
 
   // Эффект для автоматической проверки пароля при достижении 4 символов
   useEffect(() => {
-    if (password.length === 4) {
+    if (isConfirmingPassword && confirmPassword.length === 4) {
+      handlePasswordSubmit();
+    } else if (!isConfirmingPassword && password.length === 4) {
       handlePasswordSubmit();
     }
-  }, [password]);
+  }, [password, confirmPassword, isConfirmingPassword]);
 
   const handlePasswordSubmit = async () => {
     if (!password) {
@@ -58,31 +89,29 @@ export const PasswordPage = () => {
         setError('Пароль должен быть не менее 4 символов');
         return;
       }
-      if (!confirmPassword) {
+
+      if (!isConfirmingPassword) {
+        // Первый ввод пароля
         setError('Пожалуйста, подтвердите пароль');
+        setIsConfirmingPassword(true);
+        setConfirmPassword('');
         return;
       }
+
+      // Проверка подтверждения пароля
       if (password !== confirmPassword) {
         setError('Пароли не совпадают');
+        setConfirmPassword('');
+        setPasswordInput('');
+        setIsConfirmingPassword(false);
         return;
-      }
-    } else {
-      if (!currentPassword) {
-        setError('Пароль не установлен для этого аккаунта');
-        return;
-      }
-      if (password !== currentPassword) {
-        setError('Неверный пароль');
-        setPasswordInput(''); // Очищаем поле при неверном пароле
-        return;
-      }
     }
 
+      // Пароли совпадают, сохраняем в Firebase
     setIsLoading(true);
     setError('');
 
     try {
-      if (isSettingNewPassword) {
         if (!userId) {
           setError('ID пользователя отсутствует');
           return;
@@ -92,34 +121,69 @@ export const PasswordPage = () => {
           setError('Не удалось сохранить пароль. Пожалуйста, попробуйте снова.');
           return;
         }
+        // Сохраняем пароль в Redux и устанавливаем флаг авторизации
         dispatch(setPassword(password));
+        dispatch(setIsLoggedIn(true));
+        navigate('/home');
+      } catch (err) {
+        console.error('Error in handlePasswordSubmit:', err);
+        setError('Произошла ошибка. Пожалуйста, попробуйте снова.');
+        setPasswordInput('');
+        setConfirmPassword('');
+        setIsConfirmingPassword(false);
+      } finally {
+        setIsLoading(false);
       }
+      } else {
+        if (!currentPassword) {
+        setError('Пароль не установлен для этого аккаунта');
+          return;
+        }
+        if (password !== currentPassword) {
+        setError('Неверный пароль');
+        setPasswordInput('');
+          return;
+      }
+      // При успешном вводе пароля устанавливаем флаг авторизации
+      dispatch(setIsLoggedIn(true));
       navigate('/home');
-    } catch (err) {
-      console.error('Error in handlePasswordSubmit:', err);
-      setError('Произошла ошибка. Пожалуйста, попробуйте снова.');
-      setPasswordInput(''); // Очищаем поле при ошибке
-    } finally {
-      setIsLoading(false);
     }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key >= '0' && e.key <= '9' && password.length < 4) {
-      setPasswordInput(prev => prev + e.key);
+      if (isConfirmingPassword) {
+        setConfirmPassword(prev => prev + e.key);
+      } else {
+        setPasswordInput(prev => prev + e.key);
+      }
     } else if (e.key === 'Backspace') {
-      setPasswordInput(prev => prev.slice(0, -1));
+      if (isConfirmingPassword) {
+        setConfirmPassword(prev => prev.slice(0, -1));
+      } else {
+        setPasswordInput(prev => prev.slice(0, -1));
+      }
     }
   };
 
   const handleNumberClick = (num: number) => {
-    if (password.length < 4) {
-      setPasswordInput(prev => prev + num);
+    if (isConfirmingPassword) {
+      if (confirmPassword.length < 4) {
+        setConfirmPassword(prev => prev + num);
+      }
+    } else {
+      if (password.length < 4) {
+        setPasswordInput(prev => prev + num);
+      }
     }
   };
 
   const handleBackspace = () => {
-    setPasswordInput(prev => prev.slice(0, -1));
+    if (isConfirmingPassword) {
+      setConfirmPassword(prev => prev.slice(0, -1));
+    } else {
+      setPasswordInput(prev => prev.slice(0, -1));
+    }
   };
 
   return (
@@ -134,7 +198,7 @@ export const PasswordPage = () => {
         </h1>
         
         <div className="space-y-4">
-          <PinDots length={4} filled={password.length} />
+          <PinDots length={4} filled={isConfirmingPassword ? confirmPassword.length : password.length} />
 
           {/* Скрытое поле для имени пользователя */}
           <div className="sr-only">

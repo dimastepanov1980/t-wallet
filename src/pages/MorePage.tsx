@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   DocumentTextIcon, 
   ChatBubbleLeftRightIcon,
@@ -13,6 +13,10 @@ import {
   PlusCircleIcon
 } from '@heroicons/react/24/outline';
 import { useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { logout } from '../store/slices/authSlice';
+import { RootState } from '../store';
+import { storageService } from '../services/storageService';
 
 export const MorePage = () => {
   const currencies = [
@@ -21,7 +25,35 @@ export const MorePage = () => {
     { code: 'GBP', value: '132,55' }
   ];
 
+  const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { full_name } = useSelector((state: RootState) => state.user);
+  const [debugInfo, setDebugInfo] = useState<string>('');
+
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate('/login');
+  };
+
+  const checkStorage = async () => {
+    try {
+      const [userId, phone, deviceId, accounts] = await Promise.all([
+        storageService.getItem<string>('userId'),
+        storageService.getItem<string>('phone'),
+        storageService.getItem<string>('deviceId'),
+        storageService.getItem<any>('accounts')
+      ]);
+
+      setDebugInfo(JSON.stringify({
+        userId,
+        phone,
+        deviceId,
+        accounts
+      }, null, 2));
+    } catch (error: any) {
+      setDebugInfo(`Error: ${error?.message || 'Unknown error'}`);
+    }
+  };
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
@@ -70,6 +102,7 @@ export const MorePage = () => {
             icon={<BuildingLibraryIcon className="w-6 h-6" />}
             title="Банкоматы и точки пополнения"
             subtitle="Где снять и положить деньги на счет"
+            onClick={() => navigate('/atms')}
           />
           <MenuItem
             icon={<PlusCircleIcon className="w-6 h-6" />}
@@ -81,36 +114,43 @@ export const MorePage = () => {
             icon={<ShieldCheckIcon className="w-6 h-6" />}
             title="Безопасность"
             subtitle="Пароли и активные сессии"
+            onClick={() => navigate('/security')}
           />
           <MenuItem
             icon={<TicketIcon className="w-6 h-6" />}
             title="Заказы"
             subtitle="Ваши билеты и бронирования"
+            onClick={() => navigate('/orders')}
           />
           <MenuItem
             icon={<DocumentTextIcon className="w-6 h-6" />}
             title="Заказать справку"
             subtitle="Об остатке на счете и другие"
+            onClick={() => navigate('/certificates')}
           />
           <MenuItem
             icon={<ChatBubbleLeftRightIcon className="w-6 h-6" />}
             title="Обращения"
             subtitle="Ваши обращения в банк. Мы на связи 24/7"
+            onClick={() => navigate('/support')}
           />
           <MenuItem
             icon={<Cog6ToothIcon className="w-6 h-6" />}
             title="Настройки"
             subtitle="СБП, уведомления о счетах на оплату"
+            onClick={() => navigate('/settings')}
           />
           <MenuItem
             icon={<UsersIcon className="w-6 h-6" />}
             title="Совместный доступ к счетам"
             subtitle="Доступ к вашим счетам и счетам других клиентов"
+            onClick={() => navigate('/shared-access')}
           />
           <MenuItem
             icon={<ArrowsRightLeftIcon className="w-6 h-6" />}
             title="Привязки к сервисам"
             subtitle="Сервисы, которые вы привязали для оплаты через СБП"
+            onClick={() => navigate('/services')}
           />
         </div>
 
@@ -137,6 +177,22 @@ export const MorePage = () => {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Debug section */}
+        <div className="mt-8 p-4 border border-gray-200 rounded-xl">
+          <h2 className="text-lg font-medium mb-4">Отладка</h2>
+          <button
+            onClick={checkStorage}
+            className="w-full h-14 flex justify-center items-center rounded-xl text-lg font-medium text-black bg-gray-100 hover:bg-gray-200 mb-4"
+          >
+            Проверить хранилище
+          </button>
+          {debugInfo && (
+            <pre className="bg-gray-100 p-4 rounded-xl overflow-auto text-sm">
+              {debugInfo}
+            </pre>
+          )}
         </div>
       </div>
     </div>

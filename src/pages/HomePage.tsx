@@ -10,7 +10,7 @@ const getCurrentMonth = () => {
   return new Intl.DateTimeFormat('ru-RU', { month: 'long' }).format(new Date()).toLowerCase();
 };
 
-// Helper function to calculate total expenses for current month
+// Helper function to calculate total expenses for current month 
 const calculateMonthlyExpenses = (transactions: any[]) => {
   const currentMonth = new Date().getMonth();
   const currentYear = new Date().getFullYear();
