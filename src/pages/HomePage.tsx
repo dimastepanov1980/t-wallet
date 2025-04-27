@@ -142,7 +142,7 @@ export const HomePage = () => {
           <div className="text-center text-gray-500 py-4">
             У вас пока нет счетов. 
             <button 
-              onClick={() => navigate('/add-account/new')}
+              onClick={() => navigate('/add-account/new-account')}
               className="text-blue-600 ml-1 hover:underline"
             >
               Добавить первый счет

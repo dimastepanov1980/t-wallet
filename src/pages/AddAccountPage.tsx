@@ -84,7 +84,7 @@ export const AddAccountPage = () => {
                 </div>
               ))}
               <button
-                onClick={() => navigate('/add-account/new')}
+                onClick={() => navigate('/add-account/new-account')}
                 className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 text-blue-600"
               >
                 <span className="flex items-center gap-2">

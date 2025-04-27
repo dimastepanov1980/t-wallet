@@ -16,7 +16,7 @@ export const Layout = () => {
       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t">
         <div className="flex justify-between px-4">
           <NavLink
-            to="/"
+            to="/home"
             className={({ isActive }) =>
               `flex flex-col items-center py-2 px-4 ${
                 isActive ? "text-blue-600" : "text-gray-600"

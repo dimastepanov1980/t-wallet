@@ -132,6 +132,7 @@ export const AppRoutes = () => {
       
       {/* Защищенные маршруты */}
       <Route path="/" element={<Layout />}>
+        <Route index element={<Navigate to="/home" replace />} />
         <Route path="home" element={isLoggedIn ? <HomePage /> : <Navigate to="/password" />} />
         <Route path="top-up" element={isLoggedIn ? <TopUpPage /> : <Navigate to="/password" />} />
         <Route path="card-transfer" element={isLoggedIn ? <CardTransferPage /> : <Navigate to="/password" />} />
