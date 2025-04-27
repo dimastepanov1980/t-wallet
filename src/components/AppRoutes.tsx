@@ -140,8 +140,8 @@ export const AppRoutes = () => {
         <Route path="chat" element={isLoggedIn ? <ChatPage /> : <Navigate to="/password" />} />
         <Route path="more" element={isLoggedIn ? <MorePage /> : <Navigate to="/password" />} />
         <Route path="add-account" element={isLoggedIn ? <AddAccountPage /> : <Navigate to="/password" />} />
-        <Route path="new-account" element={isLoggedIn ? <NewAccountPage /> : <Navigate to="/password" />} />
-        <Route path="new-card" element={isLoggedIn ? <NewCardPage /> : <Navigate to="/password" />} />
+        <Route path="add-account/new-account" element={isLoggedIn ? <NewAccountPage /> : <Navigate to="/password" />} />
+        <Route path="add-card/:accountId" element={isLoggedIn ? <NewCardPage /> : <Navigate to="/password" />} />
         
         {/* Новые маршруты для меню */}
         <Route path="atms" element={isLoggedIn ? <AtmsPage /> : <Navigate to="/password" />} />
