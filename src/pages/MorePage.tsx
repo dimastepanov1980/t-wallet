@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { 
+  ArrowRightStartOnRectangleIcon,
   DocumentTextIcon, 
   ChatBubbleLeftRightIcon,
   Cog6ToothIcon,
@@ -13,9 +14,8 @@ import {
   PlusCircleIcon
 } from '@heroicons/react/24/outline';
 import { useNavigate } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { logout } from '../store/slices/authSlice';
-import { RootState } from '../store';
 import { storageService } from '../services/storageService';
 
 export const MorePage = () => {
@@ -27,7 +27,6 @@ export const MorePage = () => {
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { full_name } = useSelector((state: RootState) => state.user);
   const [debugInfo, setDebugInfo] = useState<string>('');
 
   const handleLogout = () => {
@@ -178,6 +177,17 @@ export const MorePage = () => {
             </div>
           </div>
         </div>
+
+         {/* Logout button */}
+         <button 
+          onClick={handleLogout}
+          className="w-full flex items-center justify-between p-4 bg-white rounded-2xl hover:bg-gray-50 text-red-600"
+        >
+          <div className="flex items-center gap-3">
+            <ArrowRightStartOnRectangleIcon className="w-6 h-6" />
+            <span>Выйти</span>
+          </div>
+        </button>
 
         {/* Debug section */}
         <div className="mt-8 p-4 border border-gray-200 rounded-xl">

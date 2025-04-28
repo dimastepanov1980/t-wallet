@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { getUserById } from '../services/firebase';
-import { setUser, clearAuth, setIsLoggedIn } from '../store/slices/authSlice';
+import { setUser, clearAuth, setPassword, setIsLoggedIn } from '../store/slices/authSlice';
 import { RootState } from '../store';
 import { useDeviceId } from '../hooks/useDeviceId';
 import { useSession } from '../hooks/useSession';
@@ -38,7 +37,18 @@ const ServicesPage = () => <div className="p-4">Страница сервисо�
 
 // Функция для определения, запущено ли приложение в браузере
 const isBrowser = () => {
-  return typeof window !== 'undefined' && !(window.navigator as any).standalone;
+  // В режиме разработки всегда показываем полное приложение
+  if (import.meta.env.DEV) {
+    return false;
+  }
+
+  // Проверяем все возможные признаки PWA
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+  const isIOSStandalone = (window.navigator as any).standalone;
+  const isPWA = isStandalone || isIOSStandalone;
+  
+  // Если это НЕ PWA - значит это браузер
+  return !isPWA;
 };
 
 export const AppRoutes = () => {
@@ -59,11 +69,12 @@ export const AppRoutes = () => {
         return;
       }
 
-      const [storedDeviceId, storedUserId, storedIsLoggedIn, storedPhone] = await Promise.all([
+      const [storedDeviceId, storedUserId, storedIsLoggedIn, storedPhone, storedPassword] = await Promise.all([
         storageService.getItem<string>('deviceId'),
         storageService.getItem<string>('userId'),
         storageService.getItem<boolean>('isLoggedIn'),
-        storageService.getItem<string>('phone')
+        storageService.getItem<string>('phone'),
+        storageService.getItem<string>('password')
       ]);
 
       console.log('Initializing app with state:', {
@@ -71,6 +82,7 @@ export const AppRoutes = () => {
         storedUserId,
         storedIsLoggedIn,
         storedPhone,
+        storedPassword,
         currentDeviceId: deviceId,
         currentIsLoggedIn: isLoggedIn
       });
@@ -86,7 +98,17 @@ export const AppRoutes = () => {
         // Проверяем, что deviceId совпадает
         if (storedDeviceId === deviceId) {
           // Данные валидны, загружаем пользователя в Redux
-          dispatch(setUser({ id: storedUserId, phone: storedPhone, deviceId: storedDeviceId }));
+          dispatch(setUser({ 
+            id: storedUserId, 
+            phone: storedPhone, 
+            deviceId: storedDeviceId 
+          }));
+          
+          // Если есть сохраненный пароль, передаем его в Redux
+          if (storedPassword) {
+            dispatch(setPassword(storedPassword));
+          }
+          
           if (storedIsLoggedIn) {
             dispatch(setIsLoggedIn(true));
           } else {
@@ -116,6 +138,7 @@ export const AppRoutes = () => {
 
   // Если это браузер, показываем только лендинг
   if (isBrowser()) {
+    console.log('Running in browser, showing landing page');
     return (
       <Routes>
         <Route path="*" element={<LandingPage />} />

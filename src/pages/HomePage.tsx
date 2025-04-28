@@ -1,5 +1,4 @@
-import { useEffect } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { RootState } from '../store';
 import { MagnifyingGlassIcon, QrCodeIcon, ArrowPathIcon, PlusIcon, PhoneIcon } from '@heroicons/react/24/outline';
 import { useNavigate } from 'react-router-dom';
@@ -33,7 +32,6 @@ const promoBlocks = [
 ];
 
 export const HomePage = () => {
-  const dispatch = useDispatch();
   const navigate = useNavigate();
   const { user, transactions, accounts } = useSelector((state: RootState) => ({
     user: state.user,

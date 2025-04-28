@@ -9,22 +9,6 @@ interface AuthState {
 }
 
 // Инициализация состояния
-const initializeState = async (): Promise<AuthState> => {
-  const [userId, phone, isLoggedIn, password] = await Promise.all([
-    storageService.getItem<string>('userId'),
-    storageService.getItem<string>('phone'),
-    storageService.getItem<boolean>('isLoggedIn'),
-    storageService.getItem<string>('password')
-  ]);
-
-  return {
-    userId,
-    phone,
-    password,
-    isLoggedIn: isLoggedIn || false
-  };
-};
-
 const initialState: AuthState = {
   userId: null,
   phone: null,

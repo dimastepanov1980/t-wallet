@@ -1,4 +1,3 @@
-import React from 'react';
 import { ArrowLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 import { BanknotesIcon, ArrowsRightLeftIcon, LinkIcon, ArrowDownIcon, BuildingLibraryIcon, CreditCardIcon } from '@heroicons/react/24/outline';
 import { useNavigate } from 'react-router-dom';

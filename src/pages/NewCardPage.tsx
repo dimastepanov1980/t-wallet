@@ -130,10 +130,15 @@ export const NewCardPage = () => {
 
           <button
             type="submit"
-            className="w-full bg-yellow-400 text-black rounded-xl py-4 px-6 text-lg font-medium hover:bg-yellow-500 transition-colors"
+            disabled={isLoading}
+            className="w-full bg-yellow-400 text-black rounded-xl py-4 px-6 text-lg font-medium hover:bg-yellow-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Создать карту
+            {isLoading ? 'Создание...' : 'Создать карту'}
           </button>
+
+          {error && (
+            <div className="text-red-500 text-center mt-4">{error}</div>
+          )}
         </form>
       </div>
     </div>

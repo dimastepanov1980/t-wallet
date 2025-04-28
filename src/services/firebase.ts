@@ -20,7 +20,6 @@ export interface User {
   allowed: boolean;
   expires_at: Timestamp;
   deviceId?: string;
-  password: string | null;
 }
 
 export const findUserByPhone = async (phone: string): Promise<User | null> => {
@@ -44,19 +43,6 @@ export const findUserByPhone = async (phone: string): Promise<User | null> => {
   }
 };
 
-export const updatePassword = async (userId: string, password: string): Promise<boolean> => {
-  try {
-    console.log('Updating password for user:', userId);
-    const userRef = doc(db, 'users', userId);
-    await updateDoc(userRef, { password });
-    console.log('Password updated successfully');
-    return true;
-  } catch (error) {
-    console.error('Error updating password:', error);
-    return false;
-  }
-};
-
 export const updateDeviceId = async (userId: string, deviceId: string): Promise<boolean> => {
   try {
     const userRef = doc(db, 'users', userId);
@@ -72,7 +58,6 @@ interface UserData {
   id: string;
   phone: string;
   deviceId?: string;
-  password?: string;
   allowed?: boolean;
   expires_at?: Timestamp;
 }

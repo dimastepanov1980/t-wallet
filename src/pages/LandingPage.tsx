@@ -1,21 +1,27 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 export const LandingPage = () => {
   const navigate = useNavigate();
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [isInstallable, setIsInstallable] = useState(false);
-  const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
-
+  const [isStandalone, setIsStandalone] = useState(false);
+  
   useEffect(() => {
-    // Если приложение уже установлено, перенаправляем на логин
-    if (isStandalone) {
+    const standalone = window.matchMedia('(display-mode: standalone)').matches;
+    const iosStandalone = (window.navigator as any).standalone;
+    const isPWA = standalone || iosStandalone;
+    
+    setIsStandalone(isPWA);
+    
+    if (isPWA) {
+      console.log('App is running as PWA, redirecting to login');
       navigate('/login');
       return;
     }
 
-    // Слушаем событие beforeinstallprompt
     const handleBeforeInstallPrompt = (e: Event) => {
+      console.log('Received beforeinstallprompt event');
       e.preventDefault();
       setDeferredPrompt(e);
       setIsInstallable(true);
@@ -23,18 +29,20 @@ export const LandingPage = () => {
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     
-    // Слушаем событие appinstalled
     window.addEventListener('appinstalled', () => {
+      console.log('App was installed');
       setDeferredPrompt(null);
       setIsInstallable(false);
-      // После установки перенаправляем на логин
-      navigate('/login');
+      // Даем время на завершение установки
+      setTimeout(() => {
+        navigate('/login');
+      }, 1000);
     });
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     };
-  }, [isStandalone, navigate]);
+  }, [navigate]);
 
   const handleInstallClick = async () => {
     if (!deferredPrompt) return;

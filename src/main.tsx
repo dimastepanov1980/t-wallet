@@ -13,14 +13,34 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   </React.StrictMode>,
 )
 
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/service-worker.js')
+      .then((registration) => {
+        console.log('ServiceWorker registered: ', registration);
+      })
+      .catch((registrationError) => {
+        console.log('ServiceWorker registration failed: ', registrationError);
+      });
+  });
+}
 // Register service worker
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/service-worker.js', {
       scope: '/'
     })
-      .then(registration => {
-        console.log('ServiceWorker registration successful');
+      .then((registration) => {
+        console.log('ServiceWorker registration successful', registration);
+        
+        // Слушаем событие удаления приложения
+        window.addEventListener('appinstalled', () => {
+          console.log('PWA was installed');
+        });
+
+        window.addEventListener('beforeinstallprompt', () => {
+          console.log('PWA install prompt');
+        });
       })
       .catch(err => {
         console.log('ServiceWorker registration failed: ', err);

@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { setPassword, setIsLoggedIn } from '../store/slices/authSlice';
-import { updatePassword } from '../services/firebase';
 import { RootState } from '../store';
 import { storageService } from '../services/storageService';
 
@@ -31,43 +30,13 @@ export const PasswordPage = () => {
   
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { userId, phone, password: currentPassword } = useSelector((state: RootState) => state.auth);
+  const { phone, password: storedPassword } = useSelector((state: RootState) => state.auth);
   const { full_name } = useSelector((state: RootState) => state.user);
 
   useEffect(() => {
-    const checkStoredCredentials = async () => {
-      console.log('PasswordPage mounted, current state:', {
-        userId,
-        phone,
-        currentPassword,
-        storedUserId: await storageService.getItem<string>('userId'),
-        storedPhone: await storageService.getItem<string>('phone'),
-        isLoggedIn: await storageService.getItem<boolean>('isLoggedIn')
-      });
-
-    if (!userId || !phone) {
-        // Проверяем, есть ли сохраненные данные в хранилище
-        const [storedUserId, storedPhone] = await Promise.all([
-          storageService.getItem<string>('userId'),
-          storageService.getItem<string>('phone')
-        ]);
-        
-        console.log('Checking storage:', {
-          storedUserId,
-          storedPhone
-        });
-
-        if (!storedUserId || !storedPhone) {
-          console.log('No stored credentials found, redirecting to login');
-      navigate('/login');
-      return;
-    }
-      }
-      setIsSettingNewPassword(!currentPassword);
-    };
-
-    checkStoredCredentials();
-  }, [userId, phone, currentPassword, navigate]);
+    // Проверяем, есть ли сохраненный пароль
+    setIsSettingNewPassword(!storedPassword);
+  }, [storedPassword]);
 
   // Эффект для автоматической проверки пароля при достижении 4 символов
   useEffect(() => {
@@ -85,14 +54,9 @@ export const PasswordPage = () => {
     }
 
     if (isSettingNewPassword) {
-      if (password.length < 4) {
-        setError('Пароль должен быть не менее 4 символов');
-        return;
-      }
-
+      // Логика установки нового пароля
       if (!isConfirmingPassword) {
         // Первый ввод пароля
-        setError('Пожалуйста, подтвердите пароль');
         setIsConfirmingPassword(true);
         setConfirmPassword('');
         return;
@@ -105,23 +69,14 @@ export const PasswordPage = () => {
         setPasswordInput('');
         setIsConfirmingPassword(false);
         return;
-    }
+      }
 
-      // Пароли совпадают, сохраняем в Firebase
-    setIsLoading(true);
-    setError('');
+      // Пароли совпадают, сохраняем локально
+      setIsLoading(true);
+      setError('');
 
-    try {
-        if (!userId) {
-          setError('ID пользователя отсутствует');
-          return;
-        }
-        const success = await updatePassword(userId, password);
-        if (!success) {
-          setError('Не удалось сохранить пароль. Пожалуйста, попробуйте снова.');
-          return;
-        }
-        // Сохраняем пароль в Redux и устанавливаем флаг авторизации
+      try {
+        await storageService.setItem('password', password);
         dispatch(setPassword(password));
         dispatch(setIsLoggedIn(true));
         navigate('/home');
@@ -134,19 +89,15 @@ export const PasswordPage = () => {
       } finally {
         setIsLoading(false);
       }
+    } else {
+      // Проверка существующего пароля
+      if (password === storedPassword) {
+        dispatch(setIsLoggedIn(true));
+        navigate('/home');
       } else {
-        if (!currentPassword) {
-        setError('Пароль не установлен для этого аккаунта');
-          return;
-        }
-        if (password !== currentPassword) {
         setError('Неверный пароль');
         setPasswordInput('');
-          return;
       }
-      // При успешном вводе пароля устанавливаем флаг авторизации
-      dispatch(setIsLoggedIn(true));
-      navigate('/home');
     }
   };
 
@@ -194,7 +145,11 @@ export const PasswordPage = () => {
     >
       <div className="w-full max-w-md space-y-6">
         <h1 className="text-2xl text-center">
-          {full_name ? `Здравствуйте, ${full_name.split(' ')[0]}!` : 'Введите пароль'}
+          {isSettingNewPassword 
+            ? 'Установите пароль' 
+            : full_name 
+              ? `Здравствуйте, ${full_name.split(' ')[0]}!` 
+              : 'Введите пароль'}
         </h1>
         
         <div className="space-y-4">

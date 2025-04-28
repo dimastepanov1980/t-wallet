@@ -29,7 +29,6 @@ const db = getFirestore(app);
  * @property {string} phone
  * @property {string} full_name
  * @property {boolean} allowed
- * @property {string|null} password
  * @property {string|null} deviceId
  * @property {import('firebase/firestore').Timestamp} created_at
  * @property {import('firebase/firestore').Timestamp} expires_at
@@ -53,7 +52,6 @@ const demoUser = {
   phone: "+79891234567",
   full_name: "Миша Школьник",
   allowed: true,
-  password: null,
   deviceId: null,
   created_at: Timestamp.now(),
   expires_at: Timestamp.fromDate(new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)), // 1 год
