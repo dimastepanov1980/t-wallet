@@ -40,9 +40,10 @@ const ServicesPage = () => <div className="p-4">Страница сервисо�
 // Функция для определения, запущено ли приложение в браузере
 const isBrowser = () => {
   // В режиме разработки всегда показываем полное приложение
-  if (import.meta.env.DEV) {
+/*  if (import.meta.env.DEV) {
     return false;
   }
+*/
 
   // Проверяем все возможные признаки PWA
   const isStandalone = window.matchMedia('(display-mode: standalone)').matches;

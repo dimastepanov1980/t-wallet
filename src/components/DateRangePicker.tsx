@@ -66,10 +66,18 @@ export const DateRangePicker = ({
 
   const handleDayClick = (date: Date) => {
     if (!selectedRange.from) {
+      // Первый клик - устанавливаем начальную дату
       setSelectedRange({ from: date });
-    } else if (!selectedRange.to && date > selectedRange.from) {
-      setSelectedRange({ ...selectedRange, to: date });
+    } else if (!selectedRange.to) {
+      // Второй клик - устанавливаем конечную дату
+      // Определяем, какая дата раньше, а какая позже
+      const isDateAfter = date > selectedRange.from;
+      setSelectedRange({
+        from: isDateAfter ? selectedRange.from : date,
+        to: isDateAfter ? date : selectedRange.from
+      });
     } else {
+      // Если обе даты уже выбраны, начинаем новый выбор
       setSelectedRange({ from: date });
     }
   };
@@ -99,7 +107,9 @@ export const DateRangePicker = ({
 
   const isInRange = (date: Date) => {
     if (!selectedRange.from || !selectedRange.to) return false;
-    return date >= selectedRange.from && date <= selectedRange.to;
+    const minDate = selectedRange.from < selectedRange.to ? selectedRange.from : selectedRange.to;
+    const maxDate = selectedRange.from < selectedRange.to ? selectedRange.to : selectedRange.from;
+    return date >= minDate && date <= maxDate;
   };
 
   const isSelected = (date: Date) => {
@@ -111,9 +121,6 @@ export const DateRangePicker = ({
     setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + increment, 1));
   };
 
-  const changeYear = (increment: number) => {
-    setCurrentMonth(new Date(currentMonth.getFullYear() + increment, currentMonth.getMonth(), 1));
-  };
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">

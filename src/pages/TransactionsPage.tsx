@@ -45,8 +45,12 @@ export const TransactionsPage = () => {
 
   // Фильтрация транзакций по выбранному диапазону дат
   const filteredTransactions = allTransactions.filter(t => {
-    const date = new Date(t.date);
-    return date >= dateRange.from && date <= dateRange.to;
+    const transactionDate = new Date(t.date);
+    const startOfDay = new Date(dateRange.from);
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(dateRange.to);
+    endOfDay.setHours(23, 59, 59, 999);
+    return transactionDate >= startOfDay && transactionDate <= endOfDay;
   });
 
   const expenses = filteredTransactions
@@ -165,7 +169,9 @@ export const TransactionsPage = () => {
                   >
                     <div>
                       <div className="font-medium">{transaction.counterpartyName}</div>
-                      <div className="text-gray-500 text-sm">Перевод</div>
+                      <div className="text-gray-500 text-sm">
+                        {transaction.bankName ? `${transaction.bankName} • Перевод` : 'Перевод'}
+                      </div>
                       <div className="text-gray-400 text-sm">
                         {transaction.cardNumber ? `${transaction.accountName} • ${transaction.cardNumber.slice(-4)}` : transaction.accountName}
                       </div>
