@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { setUser, clearAuth, setPassword, setIsLoggedIn } from '../store/slices/authSlice';
-import { RootState } from '../store';
+import { fetchAccounts } from '../store/slices/accountSlice';
+import { RootState, AppDispatch } from '../store';
 import { useDeviceId } from '../hooks/useDeviceId';
 import { useSession } from '../hooks/useSession';
 import { storageService } from '../services/storageService';
@@ -18,6 +19,7 @@ import { AddAccountPage } from '../pages/AddAccountPage';
 import { NewAccountPage } from '../pages/NewAccountPage';
 import { NewCardPage } from '../pages/NewCardPage';
 import { LandingPage } from '../pages/LandingPage';
+import { TransactionsPage } from '../pages/TransactionsPage';
 import { Layout } from './Layout';
 
 // Временные компоненты для табов
@@ -52,7 +54,7 @@ const isBrowser = () => {
 };
 
 export const AppRoutes = () => {
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const { isLoggedIn } = useSelector((state: RootState) => state.auth);
   const deviceId = useDeviceId();
@@ -69,12 +71,17 @@ export const AppRoutes = () => {
         return;
       }
 
-      const [storedDeviceId, storedUserId, storedIsLoggedIn, storedPhone, storedPassword] = await Promise.all([
+      try {
+        // Загружаем счета
+        await dispatch(fetchAccounts()).unwrap();
+
+        const [storedDeviceId, storedUserId, storedIsLoggedIn, storedPhone, storedPassword, storedFullName] = await Promise.all([
         storageService.getItem<string>('deviceId'),
         storageService.getItem<string>('userId'),
         storageService.getItem<boolean>('isLoggedIn'),
         storageService.getItem<string>('phone'),
-        storageService.getItem<string>('password')
+          storageService.getItem<string>('password'),
+          storageService.getItem<string>('full_name')
       ]);
 
       console.log('Initializing app with state:', {
@@ -83,6 +90,7 @@ export const AppRoutes = () => {
         storedIsLoggedIn,
         storedPhone,
         storedPassword,
+          storedFullName,
         currentDeviceId: deviceId,
         currentIsLoggedIn: isLoggedIn
       });
@@ -98,23 +106,24 @@ export const AppRoutes = () => {
         // Проверяем, что deviceId совпадает
         if (storedDeviceId === deviceId) {
           // Данные валидны, загружаем пользователя в Redux
-          dispatch(setUser({ 
-            id: storedUserId, 
-            phone: storedPhone, 
-            deviceId: storedDeviceId 
-          }));
-          
-          // Если есть сохраненный пароль, передаем его в Redux
-          if (storedPassword) {
-            dispatch(setPassword(storedPassword));
-          }
-          
-          if (storedIsLoggedIn) {
-            dispatch(setIsLoggedIn(true));
-          } else {
+            dispatch(setUser({ 
+              id: storedUserId, 
+              phone: storedPhone, 
+              deviceId: storedDeviceId,
+              full_name: storedFullName || '' 
+            }));
+            
+            // Если есть сохраненный пароль, передаем его в Redux
+            if (storedPassword) {
+              dispatch(setPassword(storedPassword));
+            }
+            
+            if (storedIsLoggedIn) {
+              dispatch(setIsLoggedIn(true));
+            } else {
             // Если пользователь не авторизован, запрашиваем пароль
             navigate('/password');
-          }
+            }
         } else {
           // Если deviceId не совпадает, сбрасываем авторизацию
           dispatch(clearAuth());
@@ -124,8 +133,13 @@ export const AppRoutes = () => {
         // Если нет сохраненных данных, показываем страницу входа
         navigate('/login');
       }
-
+      } catch (error) {
+        console.error('Error initializing app:', error);
+        // В случае ошибки показываем страницу входа
+        navigate('/login');
+      } finally {
       setIsInitialized(true);
+      }
     };
 
     init();
@@ -159,6 +173,7 @@ export const AppRoutes = () => {
         <Route path="home" element={isLoggedIn ? <HomePage /> : <Navigate to="/password" />} />
         <Route path="top-up" element={isLoggedIn ? <TopUpPage /> : <Navigate to="/password" />} />
         <Route path="card-transfer" element={isLoggedIn ? <CardTransferPage /> : <Navigate to="/password" />} />
+        <Route path="transactions" element={isLoggedIn ? <TransactionsPage /> : <Navigate to="/password" />} />
         <Route path="payments" element={isLoggedIn ? <PaymentsPage /> : <Navigate to="/password" />} />
         <Route path="city" element={isLoggedIn ? <CityPage /> : <Navigate to="/password" />} />
         <Route path="chat" element={isLoggedIn ? <ChatPage /> : <Navigate to="/password" />} />

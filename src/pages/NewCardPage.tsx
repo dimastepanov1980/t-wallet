@@ -16,17 +16,36 @@ export const NewCardPage = () => {
     holderName: '',
     cardNumber: '',
     type: 'mastercard' as CardType,
+    balance: 0
   });
 
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+  // Форматирование номера карты в формат **** **** **** ****
+  const formatCardNumber = (value: string) => {
+    const numbers = value.replace(/\D/g, '');
+    const groups = numbers.match(/.{1,4}/g);
+    return groups ? groups.join(' ') : numbers;
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    
+    if (name === 'cardNumber') {
+      const formatted = formatCardNumber(value);
+      if (formatted.length <= 19) { // 16 цифр + 3 пробела
+        setFormData(prev => ({
+          ...prev,
+          [name]: formatted
+        }));
+      }
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -34,10 +53,21 @@ export const NewCardPage = () => {
     setError('');
     setIsLoading(true);
 
+    // Проверяем только длину номера карты
+    const cardNumberWithoutSpaces = formData.cardNumber.replace(/\s/g, '');
+    if (cardNumberWithoutSpaces.length !== 16) {
+      setError('Номер карты должен содержать 16 цифр');
+      setIsLoading(false);
+      return;
+    }
+
     try {
       await dispatch(addCardToAccount({
         accountId: accountId!,
-        card: formData
+        card: {
+          ...formData,
+          cardNumber: cardNumberWithoutSpaces
+        }
       })).unwrap();
       navigate('/add-account');
     } catch (err) {

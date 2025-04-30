@@ -46,9 +46,10 @@ export const LoginPage = () => {
         await Promise.all([
           storageService.setItem('deviceId', deviceId),
           storageService.setItem('userId', user.id),
-          storageService.setItem('phone', phone)
+          storageService.setItem('phone', phone),
+          storageService.setItem('full_name', user.full_name)
         ]);
-        dispatch(setUser({ id: user.id, phone: user.phone, deviceId: user.deviceId }));
+        dispatch(setUser({ id: user.id, phone: user.phone, full_name: user.full_name, deviceId: user.deviceId }));
         navigate('/password');
         return;
       }
@@ -65,7 +66,7 @@ export const LoginPage = () => {
         storageService.setItem('userId', user.id),
         storageService.setItem('phone', phone)
       ]);
-      dispatch(setUser({ id: user.id, phone: user.phone, deviceId: user.deviceId }));
+      dispatch(setUser({ id: user.id, phone: user.phone, full_name: user.full_name, deviceId: user.deviceId }));
       navigate('/password');
     } catch (err) {
       console.error('Error in handleSubmit:', err);

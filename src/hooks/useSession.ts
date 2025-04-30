@@ -44,7 +44,7 @@ export const useSession = () => {
       });
 
       if (userId && phone && deviceId && storedIsLoggedIn) {
-        dispatch(setUser({ id: userId, phone, deviceId }));
+        dispatch(setUser({ id: userId, phone, deviceId, full_name: '' }));
         dispatch(setIsLoggedIn(true));
       }
     } catch (error) {

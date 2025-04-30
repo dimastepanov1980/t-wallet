@@ -85,7 +85,7 @@ export const AddAccountPage = () => {
               ))}
               <button
                 onClick={() => navigate('/add-account/new-account')}
-                className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 text-blue-600"
+                className="w-full h-14 flex justify-center items-center rounded-xl text-m font-light text-black bg-[#ffdd2d] hover:bg-[#ffd42d] disabled:opacity-50"
               >
                 <span className="flex items-center gap-2">
                   <PlusIcon className="w-5 h-5" />

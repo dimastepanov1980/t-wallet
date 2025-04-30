@@ -7,6 +7,13 @@ export interface Transaction {
   counterpartyName: string; // ФИО отправителя/получателя
   date: string;
   type: 'incoming' | 'outgoing';
+  bankName?: string;
+  cardNumber?: string;
+  description?: string;
+  processingDate?: string;
+  currency?: Currency;
+  cardCurrency?: Currency;
+  accountName?: string;
 }
 
 export interface Card {
@@ -16,6 +23,7 @@ export interface Card {
   cardNumber: string;
   name: string;
   transactions: Transaction[];
+  balance: number;
 }
 
 export interface MonthlyBalance {

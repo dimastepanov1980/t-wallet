@@ -142,7 +142,7 @@ export const NewAccountPage = () => {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-yellow-400 text-black rounded-xl py-4 px-6 text-lg font-medium hover:bg-yellow-500 transition-colors disabled:opacity-50"
+            className="w-full bg-yellow-400 text-black rounded-xl py-4 px-6 text-m font-light hover:bg-yellow-500 transition-colors disabled:opacity-50"
           >
             {isLoading ? 'Создание счета...' : 'Создать счет'}
           </button>

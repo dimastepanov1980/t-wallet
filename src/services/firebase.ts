@@ -20,6 +20,7 @@ export interface User {
   allowed: boolean;
   expires_at: Timestamp;
   deviceId?: string;
+  full_name: string;
 }
 
 export const findUserByPhone = async (phone: string): Promise<User | null> => {
@@ -57,6 +58,7 @@ export const updateDeviceId = async (userId: string, deviceId: string): Promise<
 interface UserData {
   id: string;
   phone: string;
+  full_name: string;
   deviceId?: string;
   allowed?: boolean;
   expires_at?: Timestamp;

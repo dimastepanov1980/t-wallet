@@ -14,9 +14,9 @@ import {
   PlusCircleIcon
 } from '@heroicons/react/24/outline';
 import { useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../store/slices/authSlice';
-import { storageService } from '../services/storageService';
+import { RootState } from '../store';
 
 export const MorePage = () => {
   const currencies = [
@@ -29,6 +29,8 @@ export const MorePage = () => {
   const navigate = useNavigate();
   const [debugInfo, setDebugInfo] = useState<string>('');
 
+  const { userId, phone, full_name } = useSelector((state: RootState) => state.auth);
+
   const handleLogout = () => {
     dispatch(logout());
     navigate('/login');
@@ -36,18 +38,10 @@ export const MorePage = () => {
 
   const checkStorage = async () => {
     try {
-      const [userId, phone, deviceId, accounts] = await Promise.all([
-        storageService.getItem<string>('userId'),
-        storageService.getItem<string>('phone'),
-        storageService.getItem<string>('deviceId'),
-        storageService.getItem<any>('accounts')
-      ]);
-
       setDebugInfo(JSON.stringify({
         userId,
         phone,
-        deviceId,
-        accounts
+        full_name
       }, null, 2));
     } catch (error: any) {
       setDebugInfo(`Error: ${error?.message || 'Unknown error'}`);

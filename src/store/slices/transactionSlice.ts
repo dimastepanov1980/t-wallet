@@ -28,13 +28,12 @@ const transactionSlice = createSlice({
       state.transactions = action.payload;
     },
     addTransaction: (state, action: PayloadAction<NewTransaction>) => {
-      const storageService = LocalStorageService.getInstance();
       if (!state.selectedAccountId || !state.selectedCardId) {
         state.error = 'Account or card not selected';
         return;
       }
       
-      storageService.addTransaction(
+      LocalStorageService.getInstance().addTransaction(
         state.selectedAccountId,
         state.selectedCardId,
         action.payload

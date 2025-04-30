@@ -3,6 +3,7 @@ import { RootState } from '../store';
 import { MagnifyingGlassIcon, QrCodeIcon, ArrowPathIcon, PlusIcon, PhoneIcon } from '@heroicons/react/24/outline';
 import { useNavigate } from 'react-router-dom';
 import { AccountCard } from '../components/AccountCard';
+import { Account, Card, Transaction } from '../types/account';
 
 // Helper function to get current month in Russian
 const getCurrentMonth = () => {
@@ -10,18 +11,24 @@ const getCurrentMonth = () => {
 };
 
 // Helper function to calculate total expenses for current month 
-const calculateMonthlyExpenses = (transactions: any[]) => {
+const calculateMonthlyExpenses = (accounts: Account[]) => {
   const currentMonth = new Date().getMonth();
   const currentYear = new Date().getFullYear();
   
-  return transactions
-    .filter(t => {
+  return accounts.reduce((totalExpenses, account) => {
+    const accountTransactions = account.cards.flatMap((card: Card) => card.transactions);
+    
+    const accountExpenses = accountTransactions
+      .filter((t: Transaction) => {
       const date = new Date(t.date);
       return date.getMonth() === currentMonth && 
              date.getFullYear() === currentYear && 
-             t.type === 'expense';
+               t.type === 'outgoing';
     })
-    .reduce((sum, t) => sum + t.amount, 0);
+      .reduce((sum: number, t: Transaction) => sum + t.amount, 0);
+
+    return totalExpenses + accountExpenses;
+  }, 0);
 };
 
 const promoBlocks = [
@@ -33,13 +40,24 @@ const promoBlocks = [
 
 export const HomePage = () => {
   const navigate = useNavigate();
-  const { user, transactions, accounts } = useSelector((state: RootState) => ({
-    user: state.user,
-    transactions: state.transactions.transactions,
+  const {full_name } = useSelector((state: RootState) => state.auth);
+
+  const { accounts } = useSelector((state: RootState) => ({
     accounts: state.accounts.accounts
   }));
 
-  const monthlyExpenses = calculateMonthlyExpenses(transactions);
+  const rubleAccount = accounts.find(account => account.currency === 'RUB') || accounts[0];
+  const accountName = rubleAccount?.name || 'счет';
+
+  const monthlyExpenses = calculateMonthlyExpenses(accounts);
+
+  const formatAmount = (amount: number) => {
+    return new Intl.NumberFormat('ru-RU', {
+      style: 'currency',
+      currency: 'RUB',
+      minimumFractionDigits: 2
+    }).format(amount);
+  };
 
   return (
     <div className="flex flex-col gap-8 p-4 bg-gray-50">
@@ -47,10 +65,10 @@ export const HomePage = () => {
       <div className="flex items-center gap-3">
         <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center">
           <span className="text-xl font-medium text-gray-600">
-            {user?.full_name?.[0] || 'Д'}
+            {full_name?.[0] || 'N'}
           </span>
         </div>
-        <span className="text-lg font-medium">{user?.full_name || 'Дмитрий'}</span>
+        <span className="text-lg font-medium">{full_name || 'Name'}</span>
       </div>
 
       {/* Search bar */}
@@ -60,7 +78,6 @@ export const HomePage = () => {
           type="text"
           placeholder="Поиск"
           className="w-full h-12 pl-10 pr-4 rounded-xl bg-gray-100 text-gray-600 placeholder-gray-400"
-          disabled
         />
       </div>
 
@@ -81,10 +98,13 @@ export const HomePage = () => {
       </div>
       <div className="grid grid-cols-2 gap-4">
         {/* Operations card */}
-        <div className="bg-white rounded-2xl p-4 shadow-xl">
+        <div 
+          className="bg-white rounded-2xl p-4 shadow-xl cursor-pointer hover:bg-gray-50"
+          onClick={() => navigate('/transactions')}
+        >
             <h2 className="text-lg font-medium">Все операции</h2>
             <p className="text-gray-600">Трат в {getCurrentMonth()}</p>
-            <p className="text-2xl font-medium mt-2">{monthlyExpenses.toLocaleString('ru-RU')} ₽</p>
+          <p className="text-2xl font-medium mt-2">{formatAmount(monthlyExpenses)}</p>
             <div className="h-2 bg-gray-100 rounded-full mt-3">
             <div className="h-full w-3/4 bg-blue-500 rounded-full" />
             </div>
@@ -115,7 +135,7 @@ export const HomePage = () => {
           <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center">
             <PlusIcon className="w-8 h-8 text-blue-600" />
           </div>
-          <span className="text-sm text-center text-gray-900">Пополнить<br />Black</span>
+          <span className="text-sm text-center text-gray-900">Пополнить<br />{accountName}</span>
         </div>
         <div className="flex flex-col items-center gap-3">
           <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center">
@@ -136,17 +156,14 @@ export const HomePage = () => {
         {accounts.map(account => (
           <AccountCard key={account.id} account={account} />
         ))}
-        {accounts.length === 0 && (
-          <div className="text-center text-gray-500 py-4">
-            У вас пока нет счетов. 
             <button 
               onClick={() => navigate('/add-account/new-account')}
-              className="text-blue-600 ml-1 hover:underline"
+              className="w-full h-14 flex justify-center items-center rounded-xl text-m font-light text-black bg-[#ffdd2d] hover:bg-[#ffd42d] disabled:opacity-50"
+
             >
-              Добавить первый счет
+              Новый счет или продукт
             </button>
-          </div>
-        )}
+        
       </div>
     </div>
   );

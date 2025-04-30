@@ -1,22 +1,9 @@
-import localforage from 'localforage';
-
-// Инициализация localforage
-localforage.config({
-  name: 't-wallet',
-  storeName: 'auth',
-  description: 'T-Wallet authentication storage'
-});
-
-// Создаем экземпляр для счетов
-const accountsStore = localforage.createInstance({
-  name: 't-wallet',
-  storeName: 'accounts'
-});
+import { stores } from './config';
 
 export const storageService = {
   async setItem(key: string, value: any): Promise<void> {
     try {
-      await localforage.setItem(key, value);
+      await stores.auth.setItem(key, value);
     } catch (error) {
       console.error('Error saving to storage:', error);
     }
@@ -24,7 +11,7 @@ export const storageService = {
 
   async getItem<T>(key: string): Promise<T | null> {
     try {
-      return await localforage.getItem<T>(key);
+      return await stores.auth.getItem<T>(key);
     } catch (error) {
       console.error('Error reading from storage:', error);
       return null;
@@ -33,7 +20,7 @@ export const storageService = {
 
   async removeItem(key: string): Promise<void> {
     try {
-      await localforage.removeItem(key);
+      await stores.auth.removeItem(key);
     } catch (error) {
       console.error('Error removing from storage:', error);
     }
@@ -41,7 +28,7 @@ export const storageService = {
 
   async clear(): Promise<void> {
     try {
-      await localforage.clear();
+      await stores.auth.clear();
     } catch (error) {
       console.error('Error clearing storage:', error);
     }
@@ -50,10 +37,9 @@ export const storageService = {
   async clearAllStorages(): Promise<void> {
     try {
       console.log('Clearing all storages...');
-      // Очищаем основное хранилище
-      await localforage.clear();
-      // Очищаем хранилище счетов
-      await accountsStore.clear();
+      // Очищаем все хранилища
+      await stores.auth.clear();
+      await stores.accounts.clear();
       console.log('All storages cleared successfully');
     } catch (error) {
       console.error('Error clearing all storages:', error);

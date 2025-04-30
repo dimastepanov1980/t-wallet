@@ -35,7 +35,7 @@ export const PasswordPage = () => {
 
   useEffect(() => {
     // Проверяем, есть ли сохраненный пароль
-    setIsSettingNewPassword(!storedPassword);
+      setIsSettingNewPassword(!storedPassword);
   }, [storedPassword]);
 
   // Эффект для автоматической проверки пароля при достижении 4 символов

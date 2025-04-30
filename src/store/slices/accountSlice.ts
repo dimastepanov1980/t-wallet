@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
-import { Account, Card } from '../../types/account';
+import { Account, Card, Currency } from '../../types/account';
 import { LocalStorageService } from '../../services/localStorageService';
 
 export interface AccountState {
@@ -18,6 +18,7 @@ export type NewAccountFormData = {
   name: string;
   ownerName: string;
   accountNumber: string;
+  currency: Currency;
 };
 
 export type NewCard = Omit<Card, 'id' | 'transactions'>;

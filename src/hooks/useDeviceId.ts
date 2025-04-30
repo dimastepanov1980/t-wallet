@@ -47,20 +47,20 @@ export const useDeviceId = () => {
     const initDeviceId = async () => {
       try {
         // Пытаемся получить сохраненный ID
-        const storedId = await storageService.getItem<string>(DEVICE_ID_KEY);
-        
-        if (storedId) {
-          setDeviceId(storedId);
-          return;
-        }
+      const storedId = await storageService.getItem<string>(DEVICE_ID_KEY);
+      
+      if (storedId) {
+        setDeviceId(storedId);
+        return;
+      }
 
         // Если нет сохраненного ID, создаем новый на основе параметров устройства
         const deviceParams = getDeviceParams();
         const newId = createHash(deviceParams);
         
         // Сохраняем новый ID
-        await storageService.setItem(DEVICE_ID_KEY, newId);
-        setDeviceId(newId);
+      await storageService.setItem(DEVICE_ID_KEY, newId);
+      setDeviceId(newId);
       } catch (error) {
         console.error('Error initializing device ID:', error);
         // В случае ошибки используем fallback на основе userAgent
