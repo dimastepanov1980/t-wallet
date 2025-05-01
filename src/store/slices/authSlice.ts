@@ -28,7 +28,6 @@ const authSlice = createSlice({
       state.full_name = action.payload.full_name;
       storageService.setItem('userId', action.payload.id);
       storageService.setItem('phone', action.payload.phone);
-      storageService.setItem('full_name', action.payload.full_name);
     },
     setPassword: (state, action: PayloadAction<string>) => {
       state.password = action.payload;
@@ -47,12 +46,10 @@ const authSlice = createSlice({
       state.userId = null;
       state.phone = null;
       state.password = null;
-      state.full_name = null;
       state.isLoggedIn = false;
       storageService.removeItem('userId');
       storageService.removeItem('phone');
       storageService.removeItem('password');
-      storageService.removeItem('full_name');
       storageService.removeItem('isLoggedIn');
     },
     requestPasswordReentry: (state) => {
@@ -64,7 +61,6 @@ const authSlice = createSlice({
       state.userId = null;
       state.phone = null;
       state.password = null;
-      state.full_name = null;
       state.isLoggedIn = false;
       storageService.clearAllStorages();
     },

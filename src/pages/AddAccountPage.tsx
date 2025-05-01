@@ -26,7 +26,7 @@ export const AddAccountPage = () => {
         <div className="flex items-center h-14 px-4">
           <button 
             onClick={() => navigate(-1)}
-            className="p-2 -ml-2 rounded-full hover:bg-gray-100"
+            className="bg-white p-2 -ml-2 rounded-full hover:bg-gray-100"
           >
             <ArrowLeftIcon className="w-6 h-6 text-gray-900" />
           </button>
@@ -67,25 +67,27 @@ export const AddAccountPage = () => {
 
           {/* Account dropdown */}
           {isAccountDropdownOpen && (
-            <div className="mt-4 space-y-2">
-              {accounts.map((account: Account) => (
-                <div
-                  key={account.id}
-                  className="p-3 rounded-xl hover:bg-gray-50 cursor-pointer"
-                  onClick={() => {
-                    setSelectedAccount(account);
-                    setIsAccountDropdownOpen(false);
-                  }}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium">{account.name}</span>
+            <div className="mt-4 space-y-4">
+              <ul role="list" className="divide-y divide-gray-200">
+                {accounts.map((account: Account) => (
+                  <li
+                    key={account.id}
+                    className="flex items-center justify-between py-4 first:pt-0 last:pb-0 hover:bg-gray-50 cursor-pointer"
+                    onClick={() => {
+                      setSelectedAccount(account);
+                      setIsAccountDropdownOpen(false);
+                    }}
+                  >
+                    <div className="flex-1">
+                      <span className="font-medium">{account.name}</span>
+                    </div>
                     <span className="text-gray-500">{formatBalance(account.balance)}</span>
-                  </div>
-                </div>
-              ))}
+                  </li>
+                ))}
+              </ul>
               <button
                 onClick={() => navigate('/add-account/new-account')}
-                className="w-full h-14 flex justify-center items-center rounded-xl text-m font-light text-black bg-[#ffdd2d] hover:bg-[#ffd42d] disabled:opacity-50"
+                className="w-full h-14 flex justify-center items-center rounded-xl text-gray-600 bg-[#ffdd2d] hover:bg-[#ffd42d] disabled:opacity-50"
               >
                 <span className="flex items-center gap-2">
                   <PlusIcon className="w-5 h-5" />
@@ -101,17 +103,22 @@ export const AddAccountPage = () => {
           <div className="bg-white rounded-2xl p-4">
             <h3 className="text-lg font-medium mb-4">Карты</h3>
             <div className="space-y-4">
-              {selectedAccount.cards.map(card => (
-                <div key={card.id} className="flex items-center justify-between p-2">
-                  <div>
-                    <p className="font-medium">{card.name}</p>
-                    <p className="text-gray-500">•••• {card.cardNumber.slice(-4)}</p>
-                  </div>
-                </div>
-              ))}
+              <ul role="list" className="divide-y divide-gray-100">
+                {selectedAccount.cards.map(card => (
+                  <li
+                    key={card.id}
+                    className="flex items-center justify-between py-4 first:pt-0 last:pb-0"
+                  >
+                    <div className="flex-1">
+                      <p className="font-medium">{card.name}</p>
+                      <p className="text-gray-500">•••• {card.cardNumber.slice(-4)}</p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
               <button
                 onClick={() => navigate(`/add-card/${selectedAccount.id}`)}
-                className="w-full flex items-center justify-center gap-2 p-3 rounded-xl bg-blue-600 text-white"
+                className="w-full flex items-center justify-center gap-2 p-3 rounded-xl bg-[#ffdd2d] hover:bg-[#ffd42d] text-gray-600"
               >
                 <PlusIcon className="w-5 h-5" />
                 Добавить карту

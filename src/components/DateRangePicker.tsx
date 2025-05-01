@@ -65,12 +65,17 @@ export const DateRangePicker = ({
   };
 
   const handleDayClick = (date: Date) => {
+    console.log('Current selectedRange:', selectedRange);
+    console.log('Clicked date:', date);
+
     if (!selectedRange.from) {
       // Первый клик - устанавливаем начальную дату
+      console.log('Setting initial date', date);
+
       setSelectedRange({ from: date });
     } else if (!selectedRange.to) {
-      // Второй клик - устанавливаем конечную дату
-      // Определяем, какая дата раньше, а какая позже
+      console.log('Setting end date', date);
+
       const isDateAfter = date > selectedRange.from;
       setSelectedRange({
         from: isDateAfter ? selectedRange.from : date,
@@ -78,6 +83,7 @@ export const DateRangePicker = ({
       });
     } else {
       // Если обе даты уже выбраны, начинаем новый выбор
+      console.log('Resetting range with new initial date');
       setSelectedRange({ from: date });
     }
   };
@@ -107,24 +113,67 @@ export const DateRangePicker = ({
 
   const isInRange = (date: Date) => {
     if (!selectedRange.from || !selectedRange.to) return false;
-    const minDate = selectedRange.from < selectedRange.to ? selectedRange.from : selectedRange.to;
-    const maxDate = selectedRange.from < selectedRange.to ? selectedRange.to : selectedRange.from;
-    return date >= minDate && date <= maxDate;
+    
+    // Нормализуем даты, убирая время
+    const normalizedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const normalizedFrom = new Date(
+      selectedRange.from.getFullYear(),
+      selectedRange.from.getMonth(),
+      selectedRange.from.getDate()
+    );
+    const normalizedTo = new Date(
+      selectedRange.to.getFullYear(),
+      selectedRange.to.getMonth(),
+      selectedRange.to.getDate()
+    );
+
+    // Определяем начальную и конечную даты диапазона
+    const start = normalizedFrom < normalizedTo ? normalizedFrom : normalizedTo;
+    const end = normalizedFrom < normalizedTo ? normalizedTo : normalizedFrom;
+
+    return normalizedDate >= start && normalizedDate <= end;
   };
 
   const isSelected = (date: Date) => {
-    return selectedRange.from?.getTime() === date.getTime() ||
-           selectedRange.to?.getTime() === date.getTime();
+    if (!selectedRange.from && !selectedRange.to) return false;
+
+    const normalizedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const normalizedFrom = selectedRange.from && new Date(
+      selectedRange.from.getFullYear(),
+      selectedRange.from.getMonth(),
+      selectedRange.from.getDate()
+    );
+    const normalizedTo = selectedRange.to && new Date(
+      selectedRange.to?.getFullYear(),
+      selectedRange.to?.getMonth(),
+      selectedRange.to?.getDate()
+    );
+
+    return (
+      normalizedFrom?.getTime() === normalizedDate.getTime() ||
+      normalizedTo?.getTime() === normalizedDate.getTime()
+    );
   };
 
   const changeMonth = (increment: number) => {
     setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + increment, 1));
   };
 
+  const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-2xl p-4 w-[340px] max-w-full">
+    <div 
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+      onClick={handleOverlayClick}
+    >
+      <div 
+        className="bg-white rounded-2xl p-4 w-[340px] max-w-full"
+        onClick={e => e.stopPropagation()}
+      >
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <button onClick={() => changeMonth(-1)} className='bg-white focus:outline-none'>
@@ -177,12 +226,17 @@ export const DateRangePicker = ({
                   key={index}
                   onClick={() => handleDayClick(date)}
                   className={`
-                    h-10 w-10 bg-white rounded-full flex items-center justify-center text-sm focus:outline-none
+                    h-10 w-10 rounded-full flex items-center justify-center text-sm focus:outline-none
                     ${!isCurrentMonth ? 'text-gray-400' : 'text-gray-900'}
-                    ${isSelected(date) ? 'bg-[#ffd42d] text-gray-900' : ''}
-                    ${isInRange(date) ? 'bg-[#ffd42d]' : ''}
+                    ${
+                      isSelected(date)
+                        ? 'bg-[#ffd42d] text-gray-900 font-medium'
+                        : isInRange(date)
+                        ? 'bg-[#fff3b0] text-gray-900'
+                        : 'bg-white'
+                    }
                     ${!selectedRange.from && !isCurrentMonth ? 'opacity-50' : ''}
-                    hover:bg-[#ffd42d]
+                    hover:bg-[#ffd42d] transition-colors
                   `}
                 >
                   {date.getDate()}

@@ -32,16 +32,37 @@ export const NewAccountPage = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    
+    if (name === 'accountNumber') {
+      // Удаляем все нецифровые символы
+      const numbers = value.replace(/\D/g, '');
+      
+      // Ограничиваем длину до 20 цифр
+      if (numbers.length <= 20) {
+        setFormData(prev => ({
+          ...prev,
+          [name]: numbers
+        }));
+      }
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
+
+    // Проверяем номер счета
+    if (formData.accountNumber.length !== 20) {
+      setError('Номер счета должен содержать 20 цифр');
+      setIsLoading(false);
+      return;
+    }
 
     try {
       await dispatch(createAccount(formData)).unwrap();
@@ -60,7 +81,7 @@ export const NewAccountPage = () => {
         <div className="flex items-center h-14 px-4">
           <button 
             onClick={() => navigate(-1)}
-            className="p-2 -ml-2 rounded-full hover:bg-gray-100"
+            className="bg-white p-2 -ml-2 rounded-full hover:bg-gray-100"
           >
             <ArrowLeftIcon className="w-6 h-6 text-gray-900" />
           </button>
@@ -110,9 +131,14 @@ export const NewAccountPage = () => {
                 value={formData.accountNumber}
                 onChange={handleChange}
                 className="mt-1 block w-full rounded-xl bg-gray-50 border-0 py-3 px-4 text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-blue-600"
-                placeholder="Введите номер счета"
+                placeholder="20 цифр"
                 required
+                maxLength={20}
+                pattern="\d{20}"
               />
+              <span className="text-xs text-gray-500 mt-1">
+                {formData.accountNumber.length}/20 цифр
+              </span>
             </label>
           </div>
 
@@ -142,7 +168,7 @@ export const NewAccountPage = () => {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-yellow-400 text-black rounded-xl py-4 px-6 text-m font-light hover:bg-yellow-500 transition-colors disabled:opacity-50"
+            className="w-full  bg-[#ffdd2d] hover:bg-[#ffd42d] text-gray-600 rounded-xl py-4 px-6 text-m font-light transition-colors disabled:opacity-50"
           >
             {isLoading ? 'Создание счета...' : 'Создать счет'}
           </button>

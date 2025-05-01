@@ -84,7 +84,7 @@ export const NewCardPage = () => {
         <div className="flex items-center h-14 px-4">
           <button 
             onClick={() => navigate(-1)}
-            className="p-2 -ml-2 rounded-full hover:bg-gray-100"
+            className="bg-white p-2 -ml-2 rounded-full hover:bg-gray-100"
           >
             <ArrowLeftIcon className="w-6 h-6 text-gray-900" />
           </button>
@@ -161,7 +161,7 @@ export const NewCardPage = () => {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-yellow-400 text-black rounded-xl py-4 px-6 text-lg font-medium hover:bg-yellow-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-[#ffdd2d] text-gray-600 rounded-xl py-4 px-6 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? 'Создание...' : 'Создать карту'}
           </button>

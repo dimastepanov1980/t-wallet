@@ -157,7 +157,7 @@ export const HomePage = () => {
           <AccountCard key={account.id} account={account} />
         ))}
             <button 
-              onClick={() => navigate('/add-account/new-account')}
+              onClick={() => navigate('/add-account')}
               className="w-full h-14 flex justify-center items-center rounded-xl text-m font-light text-black bg-[#ffdd2d] hover:bg-[#ffd42d] disabled:opacity-50"
 
             >

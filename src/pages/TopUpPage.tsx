@@ -1,7 +1,7 @@
 import { ArrowLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 import { BanknotesIcon, ArrowsRightLeftIcon, LinkIcon, ArrowDownIcon, BuildingLibraryIcon, CreditCardIcon } from '@heroicons/react/24/outline';
 import { useNavigate } from 'react-router-dom';
-
+import { MenuItem } from '../components/MenuItem';
 export const TopUpPage = () => {
   const navigate = useNavigate();
 
@@ -43,59 +43,39 @@ export const TopUpPage = () => {
         </div>
 
         {/* Methods list */}
-        <div className="bg-white rounded-2xl">
-          <div className="divide-y">
-            <button className="bg-white flex items-center justify-between w-full p-4">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-                  <ArrowsRightLeftIcon className="w-6 h-6 text-blue-600" />
-                </div>
-                <span className="text-gray-900">С моего счета в T-Банке</span>
-              </div>
-              <ChevronRightIcon className="w-5 h-5 text-gray-400" />
-            </button>
-
-            <button className="bg-white flex items-center justify-between w-full p-4" onClick={() => navigate('/card-transfer')}>
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-                  <CreditCardIcon className="w-6 h-6 text-blue-600" />
-                </div>
-                <span className="text-gray-900">С карты другого банка</span>
-              </div>
-              <ChevronRightIcon className="w-5 h-5 text-gray-400" />
-            </button>
-
-            <button className="bg-white flex items-center justify-between w-full p-4">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-                  <LinkIcon className="w-6 h-6 text-blue-600" />
-                </div>
-                <span className="text-gray-900">По ссылке</span>
-              </div>
-              <ChevronRightIcon className="w-5 h-5 text-gray-400" />
-            </button>
-
-            <button className="bg-white flex items-center justify-between w-full p-4">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-                  <ArrowDownIcon className="w-6 h-6 text-blue-600" />
-                </div>
-                <span className="text-gray-900">Запросить деньги</span>
-              </div>
-              <ChevronRightIcon className="w-5 h-5 text-gray-400" />
-            </button>
-
-            <button className="bg-white flex items-center justify-between w-full p-4">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-                  <BanknotesIcon className="w-6 h-6 text-blue-600" />
-                </div>
-                <span className="text-gray-900">Наличными</span>
-              </div>
-              <ChevronRightIcon className="w-5 h-5 text-gray-400" />
-            </button>
-          </div>
+        <div className="space-y-2">
+          <MenuItem
+            icon={<ArrowsRightLeftIcon className="w-6 h-6 text-blue-600" />}
+            title="С моего счета в T-Банке"
+            onClick={() => navigate('/card-transfer')}
+          />
+          <MenuItem
+            icon={<CreditCardIcon className="w-6 h-6 text-blue-600" />}
+            title="С карты другого банка"
+            onClick={() => navigate('/card-transfer')}
+          />
+          <MenuItem
+            icon={<CreditCardIcon className="w-6 h-6 text-blue-600" />}
+            title="По реквизитам"
+            onClick={() => navigate('/card-transfer')}
+          />
+          <MenuItem
+            icon={<LinkIcon className="w-6 h-6 text-blue-600" />}
+            title="По ссылке"
+            onClick={() => navigate('/card-transfer')}
+          />
+          <MenuItem
+            icon={<CreditCardIcon className="w-6 h-6 text-blue-600" />}
+            title="Запросить деньги"
+            onClick={() => navigate('/card-transfer')}
+          />
+          <MenuItem
+            icon={<BanknotesIcon className="w-6 h-6 text-blue-600" />}
+            title="Наличными"
+            onClick={() => navigate('/card-transfer')}
+          />
         </div>
+
       </div>
     </div>
   );

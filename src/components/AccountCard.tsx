@@ -79,7 +79,6 @@ export const AccountCard: React.FC<AccountCardProps> = ({ account }) => {
       onClick={() => navigate(`/account/${account.id}`)}
     >
       {/* Информация о счете */}
-      <div className="flex items-center justify-between mb-4">
         <div className="flex items-start pt-4 gap-3">
         <div className="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center">
           <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center">
@@ -131,8 +130,7 @@ export const AccountCard: React.FC<AccountCardProps> = ({ account }) => {
       )}
         </div>
         </div>
-        <ArrowRightIcon className="w-6 h-6 text-gray-400" />
-      </div>
+        
 
      
     </div>
