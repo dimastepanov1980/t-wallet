@@ -131,8 +131,6 @@ export const AccountCard: React.FC<AccountCardProps> = ({ account }) => {
         </div>
         </div>
         
-
-     
     </div>
   );
 }; 
