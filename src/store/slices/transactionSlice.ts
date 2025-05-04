@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { Transaction } from '../../types/account';
+import { Transaction } from '../../types/interface';
 import { LocalStorageService } from '../../services/localStorageService';
 
 export interface TransactionState {

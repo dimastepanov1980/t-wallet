@@ -3,7 +3,7 @@ import { RootState } from '../store';
 import { MagnifyingGlassIcon, QrCodeIcon, ArrowPathIcon, PlusIcon, PhoneIcon } from '@heroicons/react/24/outline';
 import { useNavigate } from 'react-router-dom';
 import { AccountCard } from '../components/AccountCard';
-import { Account, Card, Transaction } from '../types/account';
+import { Account, Card, Transaction } from '../types/interface';
 import { Operations } from '../components/Operations';
 
 // Helper function to get current month in Russian

@@ -1,10 +1,10 @@
 import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { Card } from '../components/ui/Card';
+import { BorderCard } from '../components/ui/BorderCard';
 import { Header } from '../components/ui/Header';
 import { RootState } from '../store';
-import { Account, Transaction, Card as CardType } from '../types/account';
+import { Account, Transaction, Card as CardType } from '../types/interface';
 import { CreditCardIcon } from '../components/CreditCardIcon';
 import { ArrowRightIcon, ChevronRightIcon } from '@heroicons/react/24/solid';
 import { Operations } from '../components/Operations';
@@ -78,7 +78,7 @@ export const AccountDetailsPage: React.FC = () => {
 
         {/* Cards list */}
         <div className="flex gap-2 p-4 overflow-x-auto bg-gray-800">
-          {account.cards.map((card) => (
+          {account.cards.map((card: CardType) => (
             <CreditCardIcon
               key={card.id}
               cardNumber={card.cardNumber}
@@ -100,7 +100,7 @@ export const AccountDetailsPage: React.FC = () => {
       <div style={{ marginTop: 'calc(env(safe-area-inset-top) + 180px)' }}>
         {/* Action buttons */}
         <div className="m-4 space-y-4">
-        <Card>
+        <BorderCard>
         <div className="grid grid-cols-3 gap-4">
     
           <button className="bg-transparent flex flex-col items-center space-y-1" onClick={() => navigate('/payments')}>
@@ -127,7 +127,7 @@ export const AccountDetailsPage: React.FC = () => {
             <span className="text-sm text-blue-500">Перевести</span>
           </button>
         </div>
-        </Card>
+        </BorderCard>
 
         {/* Account operations */}
         <div className="grid grid-cols-2 gap-4">
@@ -154,29 +154,29 @@ export const AccountDetailsPage: React.FC = () => {
         
 
         {/* Bonuses */}
-        <Card>
+        <BorderCard>
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-bold m-4 pt-4">Бонусы по {account.name}</h2>
             <button className=" bg-transparent text-blue-500 text-sm m-4">Все</button>
           </div>
           <div className="grid gap-4">
-            <Card className="p-4">
+            <BorderCard className="p-4">
               <h3 className="font-medium">Повышенный кэшбэк на май</h3>
               <p className="text-sm text-gray-500 mt-1">До 30% за подписки</p>
               <button className="mt-2 px-4 py-2 bg-yellow-400 rounded-lg text-sm">
                 Выбрать
               </button>
-            </Card>
+            </BorderCard>
           </div>
-        </Card>
+        </BorderCard>
 
         {/* Account details */}
-        <Card>
+        <BorderCard>
           
             <h2 className="text-lg font-bold m-4 pt-4">Реквизиты</h2>
             <p className="text-sm text-gray-500 m-4 pb-4">Номер договора {account.id}</p>
           
-        </Card>
+        </BorderCard>
 
         {/* Additional account options */}
         <div className="bg-gray-50 rounded-3xl">
