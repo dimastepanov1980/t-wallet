@@ -1,5 +1,4 @@
 import React from 'react';
-import { BorderCard } from './ui/BorderCard';
 
 interface OperationsProps {
 currentMonth: string;

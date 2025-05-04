@@ -22,6 +22,7 @@ import { LandingPage } from '../pages/LandingPage';
 import { TransactionsPage } from '../pages/TransactionsPage';
 import { Layout } from './Layout';
 import { AccountDetailsPage } from '../pages/AccountDetailsPage';
+import { TransactionGenerator } from './TransactionGenerator';
 
 // Временные компоненты для табов
 const PaymentsPage = () => <div className="p-4">Страница платежей</div>;
@@ -175,6 +176,7 @@ export const AppRoutes = () => {
         <Route path="home" element={isLoggedIn ? <HomePage /> : <Navigate to="/password" />} />
         <Route path="top-up/:accountId" element={isLoggedIn ? <TopUpPage /> : <Navigate to="/password" />} />
         <Route path="card-transfer/:accountId" element={isLoggedIn ? <CardTransferPage /> : <Navigate to="/password" />} />
+        <Route path="transactions/generate" element={isLoggedIn ? <TransactionGenerator /> : <Navigate to="/password" />} />
         <Route path="transactions/:accountId" element={isLoggedIn ? <TransactionsPage /> : <Navigate to="/password" />} />
         <Route path="payments" element={isLoggedIn ? <PaymentsPage /> : <Navigate to="/password" />} />
         <Route path="city" element={isLoggedIn ? <CityPage /> : <Navigate to="/password" />} />

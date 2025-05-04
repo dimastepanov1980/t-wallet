@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store';
 import { MagnifyingGlassIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
-import { Transaction } from '../types/account';
+import { Transaction, Card, Account } from '../types/interface';
 import { DateRangePicker } from '../components/DateRangePicker';
 import { Header } from '../components/ui/Header';
 import { TransactionCard } from '../components/TransactionCard';
@@ -32,17 +32,16 @@ export const TransactionsPage = () => {
   // ToDo: Давай будем отображать транзакции по текущему счету
   const { accountId } = useParams<{ accountId: string }>();
   
-  //const accounts = useSelector((state: RootState) => state.accounts.accounts);
-  const { accounts } = useSelector((state: RootState) => state.accounts);
+  const { accounts } = useSelector((state: RootState) => state.accounts as { accounts: Account[] });
   const account = accounts.find(acc => acc.id === accountId);
 
   // Получаем все транзакции из всех карт всех счетов
   const allTransactions = account
-  ? account.cards.flatMap(card => card.transactions)
-  : [];
+    ? account.cards.flatMap((card: Card) => card.transactions)
+    : [];
 
   // Фильтрация транзакций по выбранному диапазону дат
-  const filteredTransactions = allTransactions.filter(t => {
+  const filteredTransactions = allTransactions.filter((t: Transaction) => {
     const transactionDate = new Date(t.date);
     const startOfDay = new Date(dateRange.from);
     startOfDay.setHours(0, 0, 0, 0);
@@ -52,15 +51,15 @@ export const TransactionsPage = () => {
   });
 
   const expenses = filteredTransactions
-    .filter(t => t.type === 'outgoing')
-    .reduce((sum, t) => sum + t.amount, 0);
+    .filter((t: Transaction) => t.type === 'outgoing')
+    .reduce((sum: number, t: Transaction) => sum + t.amount, 0);
 
   const income = filteredTransactions
-    .filter(t => t.type === 'incoming')
-    .reduce((sum, t) => sum + t.amount, 0);
+    .filter((t: Transaction) => t.type === 'incoming')
+    .reduce((sum: number, t: Transaction) => sum + t.amount, 0);
 
   // Группировка транзакций по дате
-  const groupedTransactions = filteredTransactions.reduce((groups, transaction) => {
+  const groupedTransactions: Record<string, Transaction[]> = filteredTransactions.reduce((groups: Record<string, Transaction[]>, transaction: Transaction) => {
     const date = new Date(transaction.date);
     const dateKey = date.toISOString().split('T')[0];
     
@@ -144,16 +143,16 @@ export const TransactionsPage = () => {
       <div className="px-4">
         {Object.entries(groupedTransactions)
           .sort(([dateA], [dateB]) => new Date(dateB).getTime() - new Date(dateA).getTime())
-          .map(([date, transactions]) => (
+          .map(([date, transactions]: [string, Transaction[]]) => (
             <div key={date} className="mb-6">
-              <div className="text-xl font-bold text-gray-8 00 mb-2">
+              <div className="text-xl font-bold text-gray-800 mb-2">
                 {new Date(date).toLocaleDateString('ru-RU', {
                   day: 'numeric',
                   month: 'long'
                 })}
               </div>
               <div className="space-y-3">
-                {transactions.map((transaction) => (
+                {transactions.map((transaction: Transaction) => (
                   <TransactionCard
                     key={transaction.id} 
                     transaction={transaction}
