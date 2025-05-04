@@ -4,6 +4,7 @@ import { MagnifyingGlassIcon, QrCodeIcon, ArrowPathIcon, PlusIcon, PhoneIcon } f
 import { useNavigate } from 'react-router-dom';
 import { AccountCard } from '../components/AccountCard';
 import { Account, Card, Transaction } from '../types/account';
+import { Operations } from '../components/Operations';
 
 // Helper function to get current month in Russian
 const getCurrentMonth = () => {
@@ -97,20 +98,15 @@ export const HomePage = () => {
         ))}
       </div>
       <div className="grid grid-cols-2 gap-4">
-        {/* Operations card */}
-        <div 
-          className="bg-white rounded-2xl p-4 shadow-xl cursor-pointer hover:bg-gray-50"
-          onClick={() => navigate('/transactions')}
-        >
-            <h2 className="text-lg font-medium">Все операции</h2>
-            <p className="text-gray-600">Трат в {getCurrentMonth()}</p>
-          <p className="text-2xl font-medium mt-2">{formatAmount(monthlyExpenses)}</p>
-            <div className="h-2 bg-gray-100 rounded-full mt-3">
-            <div className="h-full w-3/4 bg-blue-500 rounded-full" />
-            </div>
-        </div>
+        {/* Operations */}
+        <Operations 
+          currentMonth={getCurrentMonth()}
+          monthlyExpenses={formatAmount(monthlyExpenses)}
+          title="Все операции"
+          navigate={() => navigate(`/transactions/${rubleAccount.id}`)}
+        />
 
-        {/* Cashback card */}
+        {/* ToDo: Create new component "Cashback"  */}
         <div className="bg-white rounded-2xl p-4 shadow-xl">
             <h2 className="text-lg font-medium">
               Кэшбэк<br />и бонусы
@@ -131,7 +127,8 @@ export const HomePage = () => {
           </div>
           <span className="text-sm text-center text-gray-900">Перевести<br />по телефону</span>
         </div>
-        <div className="flex flex-col items-center gap-3" onClick={() => navigate('/top-up')}>
+        <div className="flex flex-col items-center gap-3"
+        onClick={() => navigate(`/top-up/${rubleAccount.id}`)}>
           <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center">
             <PlusIcon className="w-8 h-8 text-blue-600" />
           </div>

@@ -21,6 +21,7 @@ import { NewCardPage } from '../pages/NewCardPage';
 import { LandingPage } from '../pages/LandingPage';
 import { TransactionsPage } from '../pages/TransactionsPage';
 import { Layout } from './Layout';
+import { AccountDetailsPage } from '../pages/AccountDetailsPage';
 
 // Временные компоненты для табов
 const PaymentsPage = () => <div className="p-4">Страница платежей</div>;
@@ -172,9 +173,9 @@ export const AppRoutes = () => {
       <Route path="/" element={<Layout />}>
         <Route index element={<Navigate to="/home" replace />} />
         <Route path="home" element={isLoggedIn ? <HomePage /> : <Navigate to="/password" />} />
-        <Route path="top-up" element={isLoggedIn ? <TopUpPage /> : <Navigate to="/password" />} />
-        <Route path="card-transfer" element={isLoggedIn ? <CardTransferPage /> : <Navigate to="/password" />} />
-        <Route path="transactions" element={isLoggedIn ? <TransactionsPage /> : <Navigate to="/password" />} />
+        <Route path="top-up/:accountId" element={isLoggedIn ? <TopUpPage /> : <Navigate to="/password" />} />
+        <Route path="card-transfer/:accountId" element={isLoggedIn ? <CardTransferPage /> : <Navigate to="/password" />} />
+        <Route path="transactions/:accountId" element={isLoggedIn ? <TransactionsPage /> : <Navigate to="/password" />} />
         <Route path="payments" element={isLoggedIn ? <PaymentsPage /> : <Navigate to="/password" />} />
         <Route path="city" element={isLoggedIn ? <CityPage /> : <Navigate to="/password" />} />
         <Route path="chat" element={isLoggedIn ? <ChatPage /> : <Navigate to="/password" />} />
@@ -182,6 +183,7 @@ export const AppRoutes = () => {
         <Route path="add-account" element={isLoggedIn ? <AddAccountPage /> : <Navigate to="/password" />} />
         <Route path="add-account/new-account" element={isLoggedIn ? <NewAccountPage /> : <Navigate to="/password" />} />
         <Route path="add-card/:accountId" element={isLoggedIn ? <NewCardPage /> : <Navigate to="/password" />} />
+        <Route path="account/:accountId" element={isLoggedIn ? <AccountDetailsPage /> : <Navigate to="/password" />} />
         
         {/* Новые маршруты для меню */}
         <Route path="atms" element={isLoggedIn ? <AtmsPage /> : <Navigate to="/password" />} />

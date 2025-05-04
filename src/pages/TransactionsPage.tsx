@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store';
-import { MagnifyingGlassIcon, ChevronLeftIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
-import { useNavigate } from 'react-router-dom';
+import { MagnifyingGlassIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
 import { Transaction } from '../types/account';
 import { DateRangePicker } from '../components/DateRangePicker';
-
+import { Header } from '../components/ui/Header';
+import { TransactionCard } from '../components/TransactionCard';
+import { useParams } from 'react-router-dom';
 const formatAmount = (amount: number) => {
   return new Intl.NumberFormat('ru-RU', {
     style: 'currency',
@@ -22,26 +23,23 @@ const formatDateRange = (from: Date, to: Date) => {
 };
 
 export const TransactionsPage = () => {
-  const navigate = useNavigate();
   const [selectedFilter, setSelectedFilter] = useState<'all' | 'accounts' | 'no-transfers'>('all');
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [dateRange, setDateRange] = useState<{ from: Date; to: Date }>({
     from: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
     to: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0)
   });
+  // ToDo: Давай будем отображать транзакции по текущему счету
+  const { accountId } = useParams<{ accountId: string }>();
   
+  //const accounts = useSelector((state: RootState) => state.accounts.accounts);
   const { accounts } = useSelector((state: RootState) => state.accounts);
+  const account = accounts.find(acc => acc.id === accountId);
 
   // Получаем все транзакции из всех карт всех счетов
-  const allTransactions = accounts.flatMap(account =>
-    account.cards.flatMap(card =>
-      card.transactions.map(transaction => ({
-        ...transaction,
-        cardNumber: card.cardNumber,
-        accountName: account.name
-      }))
-    )
-  );
+  const allTransactions = account
+  ? account.cards.flatMap(card => card.transactions)
+  : [];
 
   // Фильтрация транзакций по выбранному диапазону дат
   const filteredTransactions = allTransactions.filter(t => {
@@ -76,16 +74,9 @@ export const TransactionsPage = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white px-4 py-3 flex items-center gap-4">
-        <ChevronLeftIcon 
-          className="w-6 h-6 cursor-pointer" 
-          onClick={() => navigate(-1)}
-        />
-        <h1 className="text-xl font-medium">Операции</h1>
-      </div>
-
+      <Header title='Операции'/>
       {/* Search */}
-      <div className="px-4 py-3">
+      <div className="flex flex-col gap-4 p-4 pt-[calc(env(safe-area-inset-top))]">
         <div className="relative">
           <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
           <input
@@ -155,7 +146,7 @@ export const TransactionsPage = () => {
           .sort(([dateA], [dateB]) => new Date(dateB).getTime() - new Date(dateA).getTime())
           .map(([date, transactions]) => (
             <div key={date} className="mb-6">
-              <div className="text-gray-600 mb-2">
+              <div className="text-xl font-bold text-gray-8 00 mb-2">
                 {new Date(date).toLocaleDateString('ru-RU', {
                   day: 'numeric',
                   month: 'long'
@@ -163,24 +154,12 @@ export const TransactionsPage = () => {
               </div>
               <div className="space-y-3">
                 {transactions.map((transaction) => (
-                  <div 
+                  <TransactionCard
                     key={transaction.id} 
-                    className="bg-white rounded-xl p-4 flex items-center justify-between"
-                  >
-                    <div>
-                      <div className="font-medium">{transaction.counterpartyName}</div>
-                      <div className="text-gray-500 text-sm">
-                        {transaction.bankName ? `${transaction.bankName} • Перевод` : 'Перевод'}
-                      </div>
-                      <div className="text-gray-400 text-sm">
-                        {transaction.cardNumber ? `${transaction.accountName} • ${transaction.cardNumber.slice(-4)}` : transaction.accountName}
-                      </div>
-                    </div>
-                    <div className={`text-lg ${transaction.type === 'incoming' ? 'text-green-500' : ''}`}>
-                      {transaction.type === 'incoming' ? '+' : '−'}
-                      {formatAmount(Math.abs(transaction.amount))}
-                    </div>
-                  </div>
+                    transaction={transaction}
+                    navigate={() => {}}
+                    formatAmount={formatAmount}
+                  />
                 ))}
               </div>
             </div>

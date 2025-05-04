@@ -226,7 +226,7 @@ export const DateRangePicker = ({
                   key={index}
                   onClick={() => handleDayClick(date)}
                   className={`
-                    h-10 w-10 rounded-full flex items-center justify-center text-sm focus:outline-none
+                    h-8 w-8 rounded-full flex items-center justify-center text-xs focus:outline-none
                     ${!isCurrentMonth ? 'text-gray-400' : 'text-gray-900'}
                     ${
                       isSelected(date)

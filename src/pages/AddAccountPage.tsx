@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store';
 import { Account } from '../types/account';
+import { Header } from '../components/ui/Header';
+
 
 export const AddAccountPage = () => {
   const navigate = useNavigate();
@@ -23,19 +25,12 @@ export const AddAccountPage = () => {
     <div className="flex flex-col min-h-screen bg-gray-50">
       {/* Header */}
       <div className="fixed top-0 left-0 right-0 bg-white z-10">
-        <div className="flex items-center h-14 px-4">
-          <button 
-            onClick={() => navigate(-1)}
-            className="bg-white p-2 -ml-2 rounded-full hover:bg-gray-100"
-          >
-            <ArrowLeftIcon className="w-6 h-6 text-gray-900" />
-          </button>
-          <h1 className="ml-2 text-xl">Добавьте новый счет или карту</h1>
-        </div>
+      <Header title="Добавьте новый счет или карту" bgColor="white" textColor="gray-900" />
       </div>
 
       {/* Main content */}
-      <div className="flex flex-col gap-4 p-4 pt-20">
+      <div className="flex flex-col gap-4 p-4 pt-[calc(env(safe-area-inset-top)+52px)]">
+      
         {/* Step indicator */}
         <div className="flex justify-between items-center mb-4">
           <span className="text-gray-500">Шаг 1 из 3</span>

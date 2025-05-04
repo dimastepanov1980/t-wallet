@@ -1,18 +1,24 @@
+import React from 'react';
 import { useState } from 'react';
-import { ArrowLeftIcon } from '@heroicons/react/24/outline';
-import { useNavigate } from 'react-router-dom';
+import { Header } from '../components/ui/Header';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store';
 import { LocalStorageService } from '../services/localStorageService';
 import { BankSelect } from '../components/BankSelect';
 
 export const CardTransferPage = () => {
+  const { accountId } = useParams<{ accountId: string }>();
   const navigate = useNavigate();
   const accounts = useSelector((state: RootState) => state.accounts.accounts);
+  const account = accounts.find(acc => acc.id === accountId);
   
+  if (!account) {
+    return <div>Счёт не найден</div>;
+  }
+
   // Находим все карты рублевого счета
-  const rubleAccount = accounts.find(acc => acc.currency === 'RUB');
-  const cards = rubleAccount?.cards || [];
+  const cards = account?.cards || [];
 
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [cardNumber, setCardNumber] = useState('');
@@ -44,14 +50,14 @@ export const CardTransferPage = () => {
   };
 
   const handleTransfer = async (type: 'incoming' | 'outgoing') => {
-    if (!cardNumber || !amount || !senderName || !rubleAccount) return;
+    if (!cardNumber || !amount || !senderName || !account) return;
 
     const currentCard = cards[currentCardIndex];
     const now = new Date().toISOString();
     
     try {
       await LocalStorageService.getInstance().addTransaction(
-        rubleAccount.id,
+        account.id,
         currentCard.id,
         {
           amount: parseFloat(amount),
@@ -94,21 +100,15 @@ export const CardTransferPage = () => {
     <div className="flex flex-col min-h-screen bg-gray-50">
       {/* Header */}
       <div className="fixed top-0 left-0 right-0 bg-white z-10">
-        <div className="flex items-center h-14 px-4">
-          <button 
-            onClick={() => navigate(-1)}
-            className="bg-white p-2 -ml-2 rounded-full hover:bg-gray-100"
-          >
-            <ArrowLeftIcon className="w-6 h-6 text-gray-900" />
-          </button>
-          <h1 className="ml-2 text-xl">По номеру карты</h1>
-        </div>
+      <Header title="По номеру карты"/>
+
       </div>
 
       {/* Main content */}
-      <div className="flex flex-col gap-4 p-4 pt-20">
+      <div className="flex flex-col gap-4 p-4 pt-[calc(env(safe-area-inset-top))]">
+
         {/* Card input section */}
-        <div className="bg-white rounded-2xl p-4">
+        <div className="bg-white rounded-2xl p-4 cursor-pointer">
           <input
             type="text"
             placeholder="Номер карты"

@@ -6,12 +6,14 @@ export interface AccountState {
   accounts: Account[];
   loading: boolean;
   error: string | null;
+  selectedAccountId: string | null;
 }
 
 const initialState: AccountState = {
   accounts: [],
   loading: false,
-  error: null
+  error: null,
+  selectedAccountId: null,
 };
 
 export type NewAccountFormData = {
@@ -73,6 +75,9 @@ const accountSlice = createSlice({
     },
     setError: (state, action: PayloadAction<string | null>) => {
       state.error = action.payload;
+    },
+    setSelectedAccountId: (state, action: PayloadAction<string | null>) => {
+      state.selectedAccountId = action.payload;
     }
   },
   extraReducers: (builder) => {
@@ -128,7 +133,8 @@ const accountSlice = createSlice({
 export const { 
   setAccounts, 
   setLoading, 
-  setError 
+  setError,
+  setSelectedAccountId
 } = accountSlice.actions;
 
 export default accountSlice.reducer; 

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeftIcon } from '@heroicons/react/24/outline';
+import { Header } from '../components/ui/Header';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { addCardToAccount } from '../store/slices/accountSlice';
@@ -81,19 +81,11 @@ export const NewCardPage = () => {
     <div className="flex flex-col min-h-screen bg-gray-50">
       {/* Header */}
       <div className="fixed top-0 left-0 right-0 bg-white z-10">
-        <div className="flex items-center h-14 px-4">
-          <button 
-            onClick={() => navigate(-1)}
-            className="bg-white p-2 -ml-2 rounded-full hover:bg-gray-100"
-          >
-            <ArrowLeftIcon className="w-6 h-6 text-gray-900" />
-          </button>
-          <h1 className="ml-2 text-xl">Добавить карту</h1>
-        </div>
+        <Header title="Добавить карту" />
       </div>
 
       {/* Main content */}
-      <div className="flex flex-col gap-4 p-4 pt-20">
+      <div className="flex flex-col gap-4 p-4 pt-[calc(env(safe-area-inset-top))]">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="bg-white rounded-2xl p-4">
             <label className="block">

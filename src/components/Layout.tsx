@@ -9,7 +9,7 @@ import {
 
 export const Layout = () => {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gray-50 pt-16">
       <main className="pb-16">
         <Outlet />
       </main>
