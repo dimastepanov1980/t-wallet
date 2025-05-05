@@ -248,15 +248,17 @@ export const TransactionGenerator: React.FC = () => {
                     }
                     totalIncoming += amount;
 
+                    const randDate = new Date(currentDate);
+                    randDate.setHours(Math.floor(Math.random()*24), Math.floor(Math.random()*60), 0, 0);
                     newTransactions.push({
                       id: `tr-${Date.now()}${Math.random().toString(36).substr(2, 9)}`,
                       amount,
                       type: 'incoming',
                       counterpartyName: user.name,
-                      date: currentDate.toISOString(),
+                      date: randDate.toISOString(),
                       cardNumber: user.cardNumber,
                       description: `Пополнение от ${user.name}`,
-                      processingDate: currentDate.toISOString(),
+                      processingDate: randDate.toISOString(),
                       currency: account.currency,
                       bankName: user.bankName,
                       cardCurrency: account.currency
@@ -285,15 +287,17 @@ export const TransactionGenerator: React.FC = () => {
                       }
                       totalOutgoing += amountOut;
 
+                      const randDateOut = new Date(currentDate);
+                      randDateOut.setHours(Math.floor(Math.random()*24), Math.floor(Math.random()*60), 0, 0);
                       newTransactions.push({
                         id: `tr-${Date.now()}${Math.random().toString(36).substr(2, 9)}`,
                         amount: amountOut,
                         type: 'outgoing',
                         counterpartyName: userOut.name,
-                        date: currentDate.toISOString(),
+                        date: randDateOut.toISOString(),
                         cardNumber: userOut.cardNumber,
                         description: `Оплата ${userOut.name}`,
-                        processingDate: currentDate.toISOString(),
+                        processingDate: randDateOut.toISOString(),
                         currency: account.currency,
                         bankName: userOut.bankName,
                         cardCurrency: account.currency
