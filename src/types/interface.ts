@@ -4,7 +4,7 @@ export type Currency = 'RUB' | 'USD' | 'EUR';
 export interface Transaction {
   id: string;
   amount: number;
-  counterpartyName: string; // ФИО отправителя/получателя
+  counterpartyName: string;
   date: string;
   type: 'incoming' | 'outgoing';
   bankName?: string;

@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { setPassword, setIsLoggedIn } from '../store/slices/authSlice';
 import { RootState } from '../store';
 import { storageService } from '../services/storageService';
+import { BackspaceIcon } from '@heroicons/react/24/outline';
 
 const PinDots = ({ length, filled }: { length: number; filled: number }) => {
   return (
@@ -195,9 +196,7 @@ export const PasswordPage = () => {
                 disabled={isLoading}
                 className="w-16 h-16 bg-white flex items-center justify-center rounded-full hover:bg-gray-100 focus:outline-none disabled:opacity-50 relative after:absolute after:inset-0 after:rounded-full after:border-2 after:border-blue-500 after:opacity-0 active:after:opacity-100 after:transition-opacity after:duration-1000"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
-                </svg>
+                <BackspaceIcon className="w-6 h-6" />
               </button>
             </div>
           </div>

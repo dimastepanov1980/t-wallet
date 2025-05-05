@@ -1,12 +1,14 @@
-import { useState } from 'react';
-import { useSelector } from 'react-redux';
+import { useState, useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../store';
-import { MagnifyingGlassIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
+import { MagnifyingGlassIcon, ChevronDownIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { Transaction, Card, Account } from '../types/interface';
 import { DateRangePicker } from '../components/DateRangePicker';
 import { Header } from '../components/ui/Header';
 import { TransactionCard } from '../components/TransactionCard';
 import { useParams } from 'react-router-dom';
+import { getBankLogoPath } from '../utils/getBankLogoFileName';
+import { ArrowUturnLeftIcon } from '@heroicons/react/24/solid';
 const formatAmount = (amount: number) => {
   return new Intl.NumberFormat('ru-RU', {
     style: 'currency',
@@ -69,6 +71,40 @@ export const TransactionsPage = () => {
     groups[dateKey].push(transaction);
     return groups;
   }, {} as Record<string, Transaction[]>);
+
+  const [detailTx, setDetailTx] = useState<Transaction | null>(null);
+  const [sheetDragStart, setSheetDragStart] = useState<number | null>(null);
+  const [sheetTranslate, setSheetTranslate] = useState<number>(0);
+
+  // smooth open animation
+  useEffect(()=>{
+    if(detailTx){
+      // start below viewport then animate to 0
+      const start = window.innerHeight;
+      setSheetTranslate(start);
+      requestAnimationFrame(()=>setSheetTranslate(0));
+    }
+  },[detailTx]);
+
+  useEffect(() => {
+    let scrollY = 0;
+    if (detailTx) {
+      scrollY = window.scrollY;
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.left = '0';
+      document.body.style.right = '0';
+    } else {
+      const y = document.body.style.top;
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.left = '';
+      document.body.style.right = '';
+      if (y) window.scrollTo(0, -parseInt(y || '0'));
+    }
+  }, [detailTx]);
+
+  const dispatch = useDispatch();
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -154,9 +190,9 @@ export const TransactionsPage = () => {
               <div className="space-y-3">
                 {transactions.map((transaction: Transaction) => (
                   <TransactionCard
-                    key={transaction.id} 
+                    key={transaction.id}
                     transaction={transaction}
-                    navigate={() => {}}
+                    onSelect={(t)=>setDetailTx(t)}
                     formatAmount={formatAmount}
                   />
                 ))}
@@ -176,6 +212,90 @@ export const TransactionsPage = () => {
             setShowDatePicker(false);
           }}
         />
+      )}
+
+      {detailTx && (
+        <div className="fixed inset-0 z-50" onClick={()=>setDetailTx(null)}>
+          <div className="absolute inset-0 bg-black/40 transition-opacity" />
+          <div
+            className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl p-6 max-h-[80%] overflow-y-auto transition-transform duration-300"
+            style={{transform:`translateY(${sheetTranslate}px)`}}
+            onClick={e=>e.stopPropagation()}
+            onTouchStart={e=>setSheetDragStart(e.touches[0].clientY)}
+            onTouchMove={e=>{
+              if(sheetDragStart!==null){
+                const diff=e.touches[0].clientY-sheetDragStart;
+                if(diff>0) setSheetTranslate(diff);
+              }
+            }}
+            onTouchEnd={()=>{
+              if(sheetTranslate>100){
+                setDetailTx(null);
+              }else{
+                setSheetTranslate(0);
+              }
+              setSheetDragStart(null);
+            }}
+          >
+            <div className="mx-auto w-12 h-1.5 bg-gray-300 rounded-full mb-4" />
+            <div className="flex flex-col items-center text-center mb-6">
+              <div className="flex items-center justify-center mb-3">
+                {getBankLogoPath(detailTx.bankName) && (
+                  <img src={getBankLogoPath(detailTx.bankName)!} alt={detailTx.counterpartyName} className="w-20 h-20 rounded-full overflow-hidden "/>
+                )}
+              </div>
+              <div className="text-lg font-medium">{detailTx.counterpartyName}</div>
+              <div className="text-gray-500">Переводы</div>
+              <div className={`text-3xl font-semibold mt-2 ${detailTx.type==='incoming'?'text-green-600':'text-red-600'}`}>{detailTx.type==='incoming' ? '+' : '−'}{formatAmount(Math.abs(detailTx.amount))}</div>
+            </div>
+            <div className="w-full flex justify-center mb-6">
+              <button
+                className="bg-blue-50 rounded-xl flex flex-col items-center justify-center"
+                onClick={() => {
+                  if (!detailTx) return;
+                  // Найти аккаунт и карту
+                  const accIdx = accounts.findIndex(acc => acc.cards.some(card => card.transactions.some(t => t.id === detailTx.id)));
+                  if (accIdx === -1) return setDetailTx(null);
+                  const cardIdx = accounts[accIdx].cards.findIndex(card => card.transactions.some(t => t.id === detailTx.id));
+                  if (cardIdx === -1) return setDetailTx(null);
+                  // Удалить транзакцию
+                  const updatedAccounts = accounts.map((acc, i) =>
+                    i === accIdx ? {
+                      ...acc,
+                      cards: acc.cards.map((card, j) =>
+                        j === cardIdx ? {
+                          ...card,
+                          transactions: card.transactions.filter(t => t.id !== detailTx.id)
+                        } : card
+                      )
+                    } : acc
+                  );
+                  // Обновить store
+                  import('../store/slices/accountSlice').then(({ setAccounts }) => {
+                    dispatch(setAccounts(updatedAccounts));
+                    setDetailTx(null);
+                  });
+                }}
+              >
+                <span className="text-2xl">
+                  <ArrowUturnLeftIcon className="w-6 h-6 text-blue-500 drop-shadow-[0_0_1px_rgba(0,0,0,0.5)]" />
+                </span>
+                <div className="text-sm p-2 text-blue-500">Вернуть</div>
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div className="bg-gray-50 rounded-xl p-4">
+                <div className="font-medium mb-2">{detailTx.type==='incoming'?'Пополнение':'Списание'}</div>
+                <div className="flex items-center gap-2"><span className="text-sm">Дебетовая карта</span></div>
+              </div>
+              <div className="bg-gray-50 rounded-xl p-4">
+                <div className="font-medium mb-2">Реквизиты</div>
+                <div className="text-sm text-gray-500">Отправитель</div>
+                <div>{detailTx.counterpartyName}</div>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -1,14 +1,14 @@
 import React from 'react';
-import { Transaction } from '../types/account';
+import { Transaction } from '../types/interface';
 import { getBankLogoPath } from '../utils/getBankLogoFileName';
 
 interface OperationsProps {
     transaction: Transaction;
-    navigate: (path: string) => void;
+    onSelect: (t: Transaction) => void;
     formatAmount: (amount: number) => string;
 }
 
-export const TransactionCard: React.FC<OperationsProps> = ({ transaction, navigate, formatAmount }) => {
+export const TransactionCard: React.FC<OperationsProps> = ({ transaction, onSelect, formatAmount }) => {
     const logoPath = getBankLogoPath(transaction.bankName);
 
   return (
@@ -16,7 +16,7 @@ export const TransactionCard: React.FC<OperationsProps> = ({ transaction, naviga
     <div 
     key={transaction.id} 
     className="bg-white rounded-xl p-4 flex items-center justify-between"
-    onClick={() => navigate(`/transactions/${transaction.id}`)}
+    onClick={() => onSelect(transaction)}
     >
        <div className="w-10 h-10 rounded-full bg-transparent flex items-center justify-center text-blue-600 overflow-hidden mr-3">
     {logoPath && (
@@ -33,7 +33,7 @@ export const TransactionCard: React.FC<OperationsProps> = ({ transaction, naviga
       
     </div>
     <div className="flex flex-col items-end min-w-[80px]">
-    <div className={`text-lg ${transaction.type === 'incoming' ? 'text-green-500' : ''}`}>
+    <div className={`text-lg ${transaction.type === 'incoming' ? 'text-green-500' : 'text-red-500'}`}>
       {transaction.type === 'incoming' ? '+' : '−'}
       {formatAmount(Math.abs(transaction.amount))}
     </div>
