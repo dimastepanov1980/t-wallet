@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
-import { useSelector } from 'react-redux';
+import React, { useState, useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../store';
-import { Account } from '../types/interface';
+import { Account, Card, Transaction } from '../types/interface';
 import { BorderCard } from './ui/BorderCard';
 import { DateRangePicker } from './DateRangePicker';
+import { setAccounts } from '../store/slices/accountSlice';
+import users from '../../users.json';
 
 interface DateRange {
   from: Date;
@@ -11,9 +13,11 @@ interface DateRange {
 }
 
 export const TransactionGenerator: React.FC = () => {
+  const dispatch = useDispatch();
   const accounts = useSelector((state: RootState) => state.accounts.accounts);
   
   const [selectedAccount, setSelectedAccount] = useState<string>('');
+  const [selectedCard, setSelectedCard] = useState<string>('');
   const [avgPaymentAmount, setAvgPaymentAmount] = useState<number>(0);
   const [deltaPercent, setDeltaPercent] = useState<number>(0);
   const [dailyAmount, setDailyAmount] = useState<number>(0);
@@ -22,6 +26,15 @@ export const TransactionGenerator: React.FC = () => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [autoPayment, setAutoPayment] = useState<boolean>(false);
   const [desiredBalance, setDesiredBalance] = useState<number>(0);
+
+  // Получаем карты выбранного счета
+  const selectedAccountData = accounts.find(acc => acc.id === selectedAccount);
+  const cards = selectedAccountData?.cards || [];
+
+  // Сброс выбранной карты при смене счета
+  useEffect(() => {
+    setSelectedCard('');
+  }, [selectedAccount]);
 
   // Расчет подсказки для ежемесячной суммы
   const monthlyAmount = dailyAmount * 30;
@@ -55,7 +68,42 @@ export const TransactionGenerator: React.FC = () => {
         </BorderCard>
         <BorderCard>
           <div className="flex flex-col gap-2 p-4">
-            <label className="text-sm font-medium text-gray-700">Средняя сумма одного платежа</label>
+            <label className="text-sm font-medium text-gray-700">Выберите карту</label>
+            <select 
+              className="w-full p-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:border-blue-500"
+              value={selectedCard}
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedCard(e.target.value)}
+              disabled={!selectedAccount}
+            >
+              <option value="">Выберите карту</option>
+              {cards.map((card: Card) => (
+                <option key={card.id} value={card.id}>
+                  {card.name} (*{card.cardNumber.slice(-4)})
+                </option>
+              ))}
+            </select>
+          </div>
+        </BorderCard>
+        <BorderCard>
+          <div className="flex flex-col gap-2 p-4">
+            <label className="text-sm font-medium text-gray-700">Сумма ежедневных поступлений</label>
+            <input
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              className="bg-white w-full p-3 border border-gray-200 rounded-xl focus:outline-none focus:border-blue-500"
+              value={dailyAmount === 0 ? '' : dailyAmount}
+              onChange={(e) => {
+                const value = e.target.value.replace(/^0+/, '');
+                setDailyAmount(value === '' ? 0 : Number(value));
+              }}
+            />
+            <small className="text-gray-500">В среднем {monthlyAmount}₽ в месяц</small>
+          </div>
+        </BorderCard>
+        <BorderCard>
+          <div className="flex flex-col gap-2 p-4">
+            <label className="text-sm font-medium text-gray-700">Сумма одного поступления</label>
             <input
               type="text"
               inputMode="numeric"
@@ -92,23 +140,7 @@ export const TransactionGenerator: React.FC = () => {
             <small className="text-gray-500">Разброс суммы платежа в процентах</small>
           </div>
         </BorderCard>
-        <BorderCard>
-          <div className="flex flex-col gap-2 p-4">
-            <label className="text-sm font-medium text-gray-700">Сумма ежедневных поступлений</label>
-            <input
-              type="text"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              className="bg-white w-full p-3 border border-gray-200 rounded-xl focus:outline-none focus:border-blue-500"
-              value={dailyAmount === 0 ? '' : dailyAmount}
-              onChange={(e) => {
-                const value = e.target.value.replace(/^0+/, '');
-                setDailyAmount(value === '' ? 0 : Number(value));
-              }}
-            />
-            <small className="text-gray-500">В среднем {monthlyAmount}₽ в месяц</small>
-          </div>
-        </BorderCard>
+       
 
         <BorderCard>
           <div className="flex flex-col gap-2 p-4">
@@ -178,11 +210,123 @@ export const TransactionGenerator: React.FC = () => {
 
           <button
               className="w-full h-14 flex justify-center items-center rounded-xl text-m font-light text-black bg-[#ffdd2d] hover:bg-[#ffd42d] disabled:opacity-50"
-              disabled={!selectedAccount}
-            onClick={() => {
-              // TODO: Implement generation logic
-              console.log('Generating transactions...');
-            }}
+              disabled={!selectedAccount || !selectedCard || !avgPaymentAmount || !dailyAmount}
+              onClick={() => {
+                const account = accounts.find(acc => acc.id === selectedAccount);
+                if (!account) return;
+
+                const card = account.cards.find(c => c.id === selectedCard);
+                if (!card) return;
+
+                const newTransactions: Transaction[] = [];
+                let currentDate = new Date(startDate);
+                let currentBalance = card.balance;
+
+                const roundTo50 = (val: number) => Math.round(val / 50) * 50;
+                const desiredDaily = desiredBalance > 0 ? desiredBalance / 30 : 0;
+                const dailyOutgoingTarget = roundTo50(Math.max(0, dailyAmount - desiredDaily));
+
+                while (currentDate <= endDate) {
+                  // Calculate number of incoming payments required
+                  const paymentsNeeded = Math.ceil(dailyAmount / avgPaymentAmount);
+                  let totalIncoming = 0;
+                  const paymentBase = avgPaymentAmount;
+
+                  for (let i = 0; i < paymentsNeeded; i++) {
+                    const user = users[Math.floor(Math.random() * users.length)];
+
+                    let amount = paymentBase;
+                    if (deltaPercent > 0 && i !== paymentsNeeded - 1) {
+                      const delta = paymentBase * deltaPercent / 100;
+                      amount += (Math.random() * 2 - 1) * delta; // +/- delta
+                    }
+
+                    amount = roundTo50(amount);
+                    // Ensure we don't exceed dailyAmount
+                    if (i === paymentsNeeded - 1) {
+                      amount = roundTo50(dailyAmount - totalIncoming);
+                    }
+                    totalIncoming += amount;
+
+                    newTransactions.push({
+                      id: `tr-${Date.now()}${Math.random().toString(36).substr(2, 9)}`,
+                      amount,
+                      type: 'incoming',
+                      counterpartyName: user.name,
+                      date: currentDate.toISOString(),
+                      cardNumber: user.cardNumber,
+                      description: `Пополнение от ${user.name}`,
+                      processingDate: currentDate.toISOString(),
+                      currency: account.currency,
+                      bankName: user.bankName,
+                      cardCurrency: account.currency
+                    });
+                    currentBalance += amount;
+                  }
+
+                  // --------- Генерация исходящих платежей -------------
+                  if (dailyOutgoingTarget > 0) {
+                    const outgoingNeeded = dailyOutgoingTarget;
+                    const outPaymentsNeeded = Math.ceil(outgoingNeeded / avgPaymentAmount);
+                    let totalOutgoing = 0;
+
+                    for (let j = 0; j < outPaymentsNeeded; j++) {
+                      const userOut = users[Math.floor(Math.random() * users.length)];
+
+                      let amountOut = avgPaymentAmount;
+                      if (deltaPercent > 0 && j !== outPaymentsNeeded - 1) {
+                        const delta = avgPaymentAmount * deltaPercent / 100;
+                        amountOut += (Math.random() * 2 - 1) * delta;
+                      }
+
+                      amountOut = roundTo50(amountOut);
+                      if (j === outPaymentsNeeded - 1) {
+                        amountOut = roundTo50(outgoingNeeded - totalOutgoing);
+                      }
+                      totalOutgoing += amountOut;
+
+                      newTransactions.push({
+                        id: `tr-${Date.now()}${Math.random().toString(36).substr(2, 9)}`,
+                        amount: amountOut,
+                        type: 'outgoing',
+                        counterpartyName: userOut.name,
+                        date: currentDate.toISOString(),
+                        cardNumber: userOut.cardNumber,
+                        description: `Оплата ${userOut.name}`,
+                        processingDate: currentDate.toISOString(),
+                        currency: account.currency,
+                        bankName: userOut.bankName,
+                        cardCurrency: account.currency
+                      });
+                      currentBalance -= amountOut;
+                    }
+                  }
+                  // Next day
+                  currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() + 1);
+                }
+
+                const updatedAccounts = accounts.map(acc => {
+                  if (acc.id === selectedAccount) {
+                    return {
+                      ...acc,
+                      cards: acc.cards.map(c => {
+                        if (c.id === selectedCard) {
+                          return {
+                            ...c,
+                            transactions: [...c.transactions, ...newTransactions],
+                            balance: currentBalance
+                          };
+                        }
+                        return c;
+                      }),
+                      balance: acc.balance + (currentBalance - card.balance)
+                    };
+                  }
+                  return acc;
+                });
+
+                dispatch(setAccounts(updatedAccounts));
+              }}
           >
             Сгенерировать транзакции
           </button>

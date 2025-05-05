@@ -14,13 +14,11 @@ export const useSession = () => {
   const { isLoggedIn } = useSelector((state: RootState) => state.auth);
 
   const resetTimer = () => {
-    console.log('Resetting session timer');
     lastActivityRef.current = Date.now();
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
     timeoutRef.current = setTimeout(() => {
-      console.log('Session timeout reached, requesting password re-entry');
       isPasswordReentryRequestedRef.current = true;
       dispatch(requestPasswordReentry());
     }, SESSION_TIMEOUT);
@@ -53,11 +51,9 @@ export const useSession = () => {
   };
 
   useEffect(() => {
-    console.log('useSession hook mounted');
 
     // Функция для обработки активности пользователя
     const handleActivity = () => {
-      console.log('User activity detected');
       resetTimer();
     };
 
@@ -66,7 +62,6 @@ export const useSession = () => {
       console.log('Visibility changed:', document.hidden ? 'hidden' : 'visible');
       
       if (document.hidden) {
-        console.log('App hidden, requesting password re-entry');
         isPasswordReentryRequestedRef.current = true;
         dispatch(requestPasswordReentry());
       } else {
@@ -75,14 +70,11 @@ export const useSession = () => {
         
         // Проверяем время последней активности
         const timeSinceLastActivity = Date.now() - lastActivityRef.current;
-        console.log('Time since last activity:', timeSinceLastActivity);
         
         if (timeSinceLastActivity >= SESSION_TIMEOUT) {
-          console.log('Session timeout after visibility change, requesting password re-entry');
           isPasswordReentryRequestedRef.current = true;
           dispatch(requestPasswordReentry());
         } else {
-          console.log('Resetting timer after visibility change');
           resetTimer();
         }
       }
@@ -90,7 +82,6 @@ export const useSession = () => {
 
     // Функция для обработки закрытия страницы
     const handleBeforeUnload = () => {
-      console.log('Page unloading, requesting password re-entry');
       isPasswordReentryRequestedRef.current = true;
       dispatch(requestPasswordReentry());
     };
@@ -108,7 +99,6 @@ export const useSession = () => {
 
     // Очистка при размонтировании
     return () => {
-      console.log('useSession hook unmounting');
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
       }
