@@ -6,6 +6,10 @@
 ```bash
 npm run dev
 ```
+### Скрипт создания польователя
+```bash
+   node scripts/createUser.mjs
+```
 
 ### Запуск с доступом с мобильных устройств
 ```bash

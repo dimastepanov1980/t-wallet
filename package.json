@@ -15,12 +15,16 @@
     "@emotion/styled": "^11.14.0",
     "@heroicons/react": "^2.2.0",
     "@types/localforage": "^0.0.33",
+    "cyrillic-to-translit-js": "^3.2.1",
     "firebase": "^11.6.0",
+    "fontkit": "^2.0.4",
     "localforage": "^1.10.0",
+    "pdf-lib": "^1.17.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router-dom": "^6.30.0",
-    "react-swipeable": "^7.0.2"
+    "react-swipeable": "^7.0.2",
+    "translit-js": "^1.0.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.22.0",

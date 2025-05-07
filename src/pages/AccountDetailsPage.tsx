@@ -103,7 +103,7 @@ export const AccountDetailsPage: React.FC = () => {
         <BorderCard>
         <div className="grid grid-cols-3 gap-4">
     
-          <button className="bg-transparent flex flex-col items-center space-y-1" onClick={() => navigate('/payments')}>
+          <button className="bg-transparent flex flex-col items-center space-y-1" onClick={() => navigate(`/card-transfer/${account.id}?type=outgoing`)}>
             <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center">
                 <div className="w-4 h-4 rounded-full bg-blue-100 flex items-center justify-center">
                 </div>
@@ -194,7 +194,8 @@ export const AccountDetailsPage: React.FC = () => {
             <span>Выписка по счету</span>
             <ChevronRightIcon className="w-5 h-5 text-gray-400" />
           </button>
-          <button className="text-m font-light bg-transparent w-full flex items-center justify-between text-left">
+          <button className="text-m font-light bg-transparent w-full flex items-center justify-between text-left"
+          onClick={() => navigate(`/statement/${account.id}`)}>
             <span>Заказать справку</span>
             <ChevronRightIcon className="w-5 h-5 text-gray-400" />
           </button>

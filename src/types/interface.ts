@@ -35,7 +35,10 @@ export interface MonthlyBalance {
 export interface Account {
   id: string;
   ownerName: string;
+  ownerAddress?: string;
   accountNumber: string;
+  contractNumber?: string;
+  contractDate?: string;
   name: string;
   currency: Currency;
   cards: Card[];

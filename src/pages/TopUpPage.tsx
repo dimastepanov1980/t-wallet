@@ -40,32 +40,32 @@ export const TopUpPage = () => {
           <MenuItem
             icon={<ArrowsRightLeftIcon className="w-6 h-6 text-blue-600" />}
             title="С моего счета в T-Банке"
-            onClick={() => navigate(`/card-transfer/${accountId}`)}
+            onClick={() => navigate(`/card-transfer/${accountId}?type=incoming`)}
           />
           <MenuItem
             icon={<CreditCardIcon className="w-6 h-6 text-blue-600" />}
             title="С карты другого банка"
-            onClick={() => navigate(`/card-transfer/${accountId}`)}
+            onClick={() => navigate(`/card-transfer/${accountId}?type=incoming`)}
           />
           <MenuItem
             icon={<CreditCardIcon className="w-6 h-6 text-blue-600" />}
             title="По реквизитам"
-            onClick={() => navigate(`/card-transfer/${accountId}`)}
+            onClick={() => navigate(`/card-transfer/${accountId}?type=incoming`)}
           />
           <MenuItem
             icon={<LinkIcon className="w-6 h-6 text-blue-600" />}
             title="По ссылке"
-            onClick={() => navigate(`/card-transfer/${accountId}`)}
+            onClick={() => navigate(`/card-transfer/${accountId}?type=incoming`)}
           />
           <MenuItem
             icon={<CreditCardIcon className="w-6 h-6 text-blue-600" />}
             title="Запросить деньги"
-            onClick={() => navigate(`/card-transfer/${accountId}`)}
+            onClick={() => navigate(`/card-transfer/${accountId}?type=incoming`)}
           />
           <MenuItem
             icon={<BanknotesIcon className="w-6 h-6 text-blue-600" />}
             title="Наличными"
-            onClick={() => navigate(`/card-transfer/${accountId}`)}
+            onClick={() => navigate(`/card-transfer/${accountId}?type=incoming`)}
           />
         </div>
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import { useState } from 'react';
 import { Header } from '../components/ui/Header';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store';
 import { LocalStorageService } from '../services/localStorageService';
@@ -12,6 +12,9 @@ export const CardTransferPage = () => {
   const navigate = useNavigate();
   const accounts = useSelector((state: RootState) => state.accounts.accounts);
   const account = accounts.find(acc => acc.id === accountId);
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+  const transferType = params.get('type') as 'incoming' | 'outgoing' || 'outgoing'; // default outgoing
   
   if (!account) {
     return <div>Счёт не найден</div>;
@@ -65,7 +68,7 @@ export const CardTransferPage = () => {
           counterpartyName: senderName,
           date: now,
           cardNumber: cardNumber.replace(/\s/g, ''),
-          description: `Пополнение с карты ${cardNumber}`,
+          description: type === 'incoming' ? `Пополнение с карты ${cardNumber}` : `Перевод на карту ${cardNumber}`,
           processingDate: now,
           currency: 'RUB',
           bankName: selectedBank?.name,
@@ -111,7 +114,7 @@ export const CardTransferPage = () => {
         <div className="bg-white rounded-2xl p-4 cursor-pointer">
           <input
             type="text"
-            placeholder="Номер карты"
+            placeholder={transferType === 'incoming' ? 'Номер карты' : 'Номер получателя'}
             value={cardNumber}
             onChange={handleCardNumberChange}
             className="w-full bg-gray-50 rounded-xl p-4 text-lg outline-none"
@@ -124,7 +127,7 @@ export const CardTransferPage = () => {
 
         <div className="bg-white rounded-2xl p-4">
             <label className="block">
-              <span className="text-sm text-gray-500">Банк отправителя</span>
+              <span className="text-sm text-gray-500">{transferType === 'incoming' ? 'Банк отправителя' : 'Банк получателя'}</span>
               <div className="bg-white rounded-3xl shadow-sm">
           <BankSelect
             onSelect={(bank) => setSelectedBank(bank)}
@@ -140,7 +143,7 @@ export const CardTransferPage = () => {
           <div className="bg-white rounded-2xl p-4">
             <input
               type="text"
-              placeholder="ФИО отправителя"
+              placeholder={transferType === 'incoming' ? 'ФИО отправителя' : 'ФИО получателя'}
               value={senderName}
               onChange={(e) => setSenderName(e.target.value)}
               className="w-full bg-gray-50 rounded-xl p-4 text-lg outline-none"
@@ -204,9 +207,9 @@ export const CardTransferPage = () => {
               : 'bg-gray-200 text-gray-500'
           }`}
           disabled={!cardNumber || !amount || (showSenderName && !senderName)}
-          onClick={() => handleTransfer('incoming')}
+          onClick={() => handleTransfer(transferType)}
         >
-          Перевести
+          {transferType === 'incoming' ? 'Пополнить' : 'Перевести'}
         </button>
       </div>
     </div>

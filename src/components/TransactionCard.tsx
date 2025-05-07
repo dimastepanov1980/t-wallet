@@ -28,7 +28,7 @@ export const TransactionCard: React.FC<OperationsProps> = ({ transaction, onSele
       <div className="font-medium">{transaction.counterpartyName}</div>
       
       <div className="text-gray-500 text-sm">
-        {'Перевод'}
+        {transaction.description || 'Перевод'}
       </div>
       
     </div>

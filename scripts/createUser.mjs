@@ -49,8 +49,8 @@ async function createUser(userData) {
 
 // Пример использования
 const demoUser = {
-  phone: "+79891234567",
-  full_name: "Миша Школьник",
+  phone: "+79891111111",
+  full_name: "Chrome",
   allowed: true,
   deviceId: null,
   created_at: Timestamp.now(),

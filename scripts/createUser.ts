@@ -44,7 +44,7 @@ async function createUser(userData: UserData) {
 
 // Пример использования
 const demoUser: UserData = {
-  phone: "+79891234567",
+  phone: "+79891111111",
   full_name: "Миша Школьник",
   allowed: true,
   pin: null,

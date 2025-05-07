@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../store';
-import { MagnifyingGlassIcon, ChevronDownIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { MagnifyingGlassIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
 import { Transaction, Card, Account } from '../types/interface';
 import { DateRangePicker } from '../components/DateRangePicker';
 import { Header } from '../components/ui/Header';
@@ -259,20 +259,37 @@ export const TransactionsPage = () => {
                   const cardIdx = accounts[accIdx].cards.findIndex(card => card.transactions.some(t => t.id === detailTx.id));
                   if (cardIdx === -1) return setDetailTx(null);
                   // Удалить транзакцию
-                  const updatedAccounts = accounts.map((acc, i) =>
-                    i === accIdx ? {
-                      ...acc,
-                      cards: acc.cards.map((card, j) =>
-                        j === cardIdx ? {
-                          ...card,
-                          transactions: card.transactions.filter(t => t.id !== detailTx.id)
-                        } : card
-                      )
-                    } : acc
-                  );
+                  const updatedAccounts = accounts.map((acc, i) => {
+                    if (i === accIdx) {
+                      const newCards = acc.cards.map((card, j) => {
+                        if (j === cardIdx) {
+                          const newTransactions = card.transactions.filter(t => t.id !== detailTx.id);
+                          const newBalance = newTransactions.reduce((sum, t) =>
+                            t.type === 'incoming' ? sum + t.amount : sum - t.amount, 0
+                          );
+                          return {
+                            ...card,
+                            transactions: newTransactions,
+                            balance: newBalance
+                          };
+                        }
+                        return card;
+                      });
+                      // Пересчитываем баланс аккаунта как сумму балансов всех карт
+                      const newAccountBalance = newCards.reduce((sum, card) => sum + (card.balance || 0), 0);
+                      return {
+                        ...acc,
+                        cards: newCards,
+                        balance: newAccountBalance
+                      };
+                    }
+                    return acc;
+                  });
                   // Обновить store
-                  import('../store/slices/accountSlice').then(({ setAccounts }) => {
+                  import('../store/slices/accountSlice').then(async ({ setAccounts }) => {
                     dispatch(setAccounts(updatedAccounts));
+                    const { LocalStorageService } = await import('../services/localStorageService');
+                    await LocalStorageService.getInstance().saveAccounts(updatedAccounts);
                     setDetailTx(null);
                   });
                 }}

@@ -121,14 +121,15 @@ export const HomePage = () => {
 
       {/* Quick actions */}
       <div className="grid grid-cols-4 gap-4">
-        <div className="flex flex-col items-center gap-3">
+        <div className="flex flex-col items-center gap-3"
+        onClick={() => navigate(`/card-transfer/${rubleAccount.id}?type=outgoing`)}>
           <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center">
             <PhoneIcon className="w-8 h-8 text-blue-600" />
           </div>
           <span className="text-sm text-center text-gray-900">Перевести<br />по телефону</span>
         </div>
         <div className="flex flex-col items-center gap-3"
-        onClick={() => navigate(`/top-up/${rubleAccount.id}`)}>
+        onClick={() => navigate(`/top-up/${rubleAccount.id}?type=incoming`)}>
           <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center">
             <PlusIcon className="w-8 h-8 text-blue-600" />
           </div>
