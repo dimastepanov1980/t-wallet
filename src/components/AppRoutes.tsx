@@ -25,11 +25,11 @@ import { AccountDetailsPage } from '../pages/AccountDetailsPage';
 import { TransactionGenerator } from './TransactionGenerator';
 import { StatementPage } from '../pages/StatementPage';
 import { StatementCreatedPage } from '../pages/StatementCreatedPage';
+import { ChatPage } from '../pages/ChatPage';
 
 // Временные компоненты для табов
 const PaymentsPage = () => <div className="p-4">Страница платежей</div>;
 const CityPage = () => <div className="p-4">Страница города</div>;
-const ChatPage = () => <div className="p-4">Страница чата</div>;
 
 // Временные компоненты для меню
 const AtmsPage = () => <div className="p-4">Страница банкоматов</div>;
@@ -190,6 +190,7 @@ export const AppRoutes = () => {
         <Route path="account/:accountId" element={isLoggedIn ? <AccountDetailsPage /> : <Navigate to="/password" />} />
         <Route path="statement/:accountId" element={isLoggedIn ? <StatementPage /> : <Navigate to="/password" />} />
         <Route path="statement-created" element={isLoggedIn ? <StatementCreatedPage onSendEmail={()=>{}} onDone={()=>{}} /> : <Navigate to="/password" />} />
+        <Route path="chat" element={isLoggedIn ? <ChatPage /> : <Navigate to="/password" />} />
         
         {/* Новые маршруты для меню */}
         <Route path="atms" element={isLoggedIn ? <AtmsPage /> : <Navigate to="/password" />} />
