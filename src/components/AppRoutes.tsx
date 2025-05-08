@@ -26,10 +26,10 @@ import { TransactionGenerator } from './TransactionGenerator';
 import { StatementPage } from '../pages/StatementPage';
 import { StatementCreatedPage } from '../pages/StatementCreatedPage';
 import { ChatPage } from '../pages/ChatPage';
+import { CityPage } from '../pages/CityPage';
 
 // Временные компоненты для табов
 const PaymentsPage = () => <div className="p-4">Страница платежей</div>;
-const CityPage = () => <div className="p-4">Страница города</div>;
 
 // Временные компоненты для меню
 const AtmsPage = () => <div className="p-4">Страница банкоматов</div>;
