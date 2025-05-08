@@ -4,6 +4,7 @@ import { RootState } from '../store';
 import { Account } from '../types/interface';
 import { PDFDocument, PDFPage, rgb, StandardFonts, PDFFont, PDFImage } from 'pdf-lib';
 import CyrillicToTranslit from 'cyrillic-to-translit-js';
+import { useNavigate } from 'react-router-dom';
 
 const cyrillicToTranslit = CyrillicToTranslit();
 
@@ -39,7 +40,7 @@ function formatDateTimeToLines(isoString: string): [string, string] {
   return [dateStr, timeStr];
 }
 
-async function generateStatementPDF({ account, period, operationType, customPeriod, transactions }: { account: Account, period: string, operationType: string, customPeriod: {from: string, to: string}|null, transactions: any[] }) {
+async function generateStatementPDF({ account, period, operationType, customPeriod, transactions }: { account: Account, period: string, operationType: string, customPeriod: {from: string, to: string}|null, transactions: any[] }): Promise<Blob> {
   //const existingPdfBytes = await fetch('/template/template.pdf').then(res => res.arrayBuffer());
 //  const pdfDoc = await PDFDocument.load(existingPdfBytes);
  // const pdfDoc = await PDFDocument.create();
@@ -230,12 +231,7 @@ async function generateStatementPDF({ account, period, operationType, customPeri
 
   const pdfBytes = await pdfDoc.save();
   const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'statement.pdf';
-  a.click();
-  URL.revokeObjectURL(url);
+  return blob;
 }
 
 // Функция для отрисовки header на странице
@@ -284,6 +280,7 @@ export const StatementPage = () => {
   const [period, setPeriod] = useState('1m');
   const [customPeriod, setCustomPeriod] = useState<{from: string, to: string}|null>(null);
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const selectedAcc = accounts.find(acc => acc.id === selectedAccount);
   const transactions = selectedAcc?.cards.flatMap(card => card.transactions) || [];
@@ -291,8 +288,10 @@ export const StatementPage = () => {
   const handleGenerate = async () => {
     if (!selectedAcc) return;
     setLoading(true);
-    await generateStatementPDF({ account: selectedAcc, period, operationType, customPeriod, transactions });
+    const pdfBlob = await generateStatementPDF({ account: selectedAcc, period, operationType, customPeriod, transactions });
     setLoading(false);
+    const pdfUrl = URL.createObjectURL(pdfBlob); 
+    navigate('/statement-created', { state: { pdfUrl } });
   };
 
   return (
