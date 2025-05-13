@@ -1,3 +1,5 @@
+import React from 'react';
+
 import { useSelector } from 'react-redux';
 import { RootState } from '../store';
 import { MagnifyingGlassIcon, QrCodeIcon, ArrowPathIcon, PlusIcon, PhoneIcon } from '@heroicons/react/24/outline';
@@ -5,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { AccountCard } from '../components/AccountCard';
 import { Account, Card, Transaction } from '../types/interface';
 import { Operations } from '../components/Operations';
+
 
 // Helper function to get current month in Russian
 const getCurrentMonth = () => {
@@ -33,10 +36,34 @@ const calculateMonthlyExpenses = (accounts: Account[]) => {
 };
 
 const promoBlocks = [
-  { title: 'Горный Алтай осенью', image: 'mountain.jpg' },
-  { title: 'Разоблачите оператора связи?', image: 'phone.jpg' },
-  { title: 'Оставляете чаевые?', image: 'tips.jpg' },
-  { title: 'Тест о римской экономике', image: 'rome.jpg' },
+  { title: 'Горный Алтай осенью', image: 
+    (
+      <img
+        src="/logos/mountain.jpg" 
+        
+      />
+    ) },
+  { title: 'Разоблачите оператора связи?', image: 
+    (
+      <img
+        src="/logos/phone.jpg" 
+        
+      />
+    ) },
+  { title: 'Оставляете чаевые?', image: 
+    (
+      <img
+        src="/logos/tips.webp" 
+        
+      />
+    ) },
+  { title: 'Тест о римской экономике', image: 
+    (
+      <img
+        src="/logos/rome.jpg" 
+        
+      />
+    ) },
 ];
 
 export const HomePage = () => {
@@ -87,13 +114,28 @@ export const HomePage = () => {
         {promoBlocks.map((block, index) => (
           <div
             key={index}
-            className="flex-shrink-0 w-28 h-28 rounded-2xl bg-blue-100 flex items-end p-3 relative overflow-hidden"
+            className="flex-shrink-0 w-28 h-28 rounded-2xl bg-blue-100 relative overflow-hidden"
             style={{ minWidth: '6rem' }}
           >
-            <span className="text-sm font-medium text-white z-10 line-clamp-2">
+            {/* Изображение на весь блок */}
+            {React.isValidElement(block.image)
+              ? React.cloneElement(
+                  block.image as React.ReactElement<any>,
+                  {
+                    className:
+                      (((block.image as React.ReactElement<any>).props.className || '') +
+                        ' absolute inset-0 w-full h-full object-cover z-0').trim()
+                  }
+                )
+              : block.image}
+
+            {/* Оверлей для затемнения */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent z-10" />
+
+            {/* Текст поверх изображения */}
+            <span className="absolute bottom-3 left-3 right-3 text-sm font-medium text-white z-20 line-clamp-2">
               {block.title}
             </span>
-            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
           </div>
         ))}
       </div>
