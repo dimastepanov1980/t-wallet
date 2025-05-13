@@ -29,13 +29,10 @@ const App = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  if (showSplash) {
-    return <SplashScreen />;
-  }
-
   return (
     <Provider store={store}>
       <BrowserRouter>
+        {showSplash && <SplashScreen />}
         <AppRoutes />
       </BrowserRouter>
     </Provider>

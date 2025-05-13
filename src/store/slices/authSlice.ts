@@ -7,6 +7,7 @@ interface AuthState {
   password: string | null;
   full_name: string | null;
   isLoggedIn: boolean;
+  demoMode: boolean;
 }
 
 // Инициализация состояния
@@ -15,7 +16,8 @@ const initialState: AuthState = {
   phone: null,
   password: null,
   full_name: null,
-  isLoggedIn: false
+  isLoggedIn: false,
+  demoMode: false
 };
 
 const authSlice = createSlice({
@@ -37,6 +39,12 @@ const authSlice = createSlice({
       state.isLoggedIn = action.payload;
       storageService.setItem('isLoggedIn', action.payload);
     },
+    setDemoMode: (state, action: PayloadAction<boolean>) => {
+      state.demoMode = action.payload;
+    },
+    clearDemoMode: (state) => {
+      state.demoMode = false;
+    },
     logout: (state) => {
       state.isLoggedIn = false;
       storageService.setItem('isLoggedIn', false);
@@ -47,6 +55,7 @@ const authSlice = createSlice({
       state.phone = null;
       state.password = null;
       state.isLoggedIn = false;
+      state.demoMode = false;
       storageService.removeItem('userId');
       storageService.removeItem('phone');
       storageService.removeItem('password');
@@ -62,6 +71,7 @@ const authSlice = createSlice({
       state.phone = null;
       state.password = null;
       state.isLoggedIn = false;
+      state.demoMode = false;
       storageService.clearAllStorages();
     },
   },
@@ -71,6 +81,8 @@ export const {
   setUser, 
   setPassword, 
   setIsLoggedIn, 
+  setDemoMode, 
+  clearDemoMode, 
   logout, 
   clearAuth, 
   requestPasswordReentry,

@@ -1,79 +1,42 @@
-import { useState } from 'react';
-import { useDispatch } from 'react-redux';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { setUser } from '../store/slices/authSlice';
-import { findUserByPhone, updateDeviceId } from '../services/firebase';
+import { useDispatch } from 'react-redux';
+import { setDemoMode } from '../store/slices/authSlice';
 import { useDeviceId } from '../hooks/useDeviceId';
 import { storageService } from '../services/storageService';
+import { generateExpectedCode } from '../utils/generateExpectedCode';
+
+const SECRET = 't-wallet-2024'; // ToDo: обфусцировать
 
 export const LoginPage = () => {
-  const [phone, setPhoneInput] = useState('');
+  const [code, setCode] = useState('');
   const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const dispatch = useDispatch();
+  const [deviceId, setDeviceId] = useState<string | null>(null);
   const navigate = useNavigate();
-  const deviceId = useDeviceId();
+  const dispatch = useDispatch();
+
+  const deviceIdHook = useDeviceId();
+
+  useEffect(() => {
+    setDeviceId(deviceIdHook || null);
+  }, [deviceIdHook]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    setIsLoading(true);
-
-    if (!deviceId) {
-      setError('ID устройства недоступен');
-      return;
-    }
-
-    try {
-      // Проверяем существование пользователя
-      const user = await findUserByPhone(phone);
-      
-      if (!user) {
-        setError('Пользователь с таким номером телефона не найден');
-        return;
-      }
-
-      // Если deviceId не установлен, устанавливаем его
-      if (!user.deviceId) {
-        console.log('DeviceId not set, setting it now...');
-        const success = await updateDeviceId(user.id, deviceId);
-        if (!success) {
-          setError('Не удалось зарегистрировать устройство');
-          return;
-        }
-        console.log('DeviceId set successfully');
-        // Сохраняем данные в хранилище
-        await Promise.all([
-          storageService.setItem('deviceId', deviceId),
-          storageService.setItem('userId', user.id),
-          storageService.setItem('phone', phone),
-          storageService.setItem('full_name', user.full_name)
-        ]);
-        dispatch(setUser({ id: user.id, phone: user.phone, full_name: user.full_name, deviceId: user.deviceId }));
-        navigate('/password');
-        return;
-      }
-
-      // Если deviceId установлен, проверяем совпадение
-      if (user.deviceId !== deviceId) {
-        setError('Этот аккаунт уже зарегистрирован на другом устройстве');
-        return;
-      }
-
-      // Если все проверки пройдены, сохраняем данные и переходим на страницу пароля
-      await Promise.all([
-        storageService.setItem('deviceId', deviceId),
-        storageService.setItem('userId', user.id),
-        storageService.setItem('phone', phone)
-      ]);
-      dispatch(setUser({ id: user.id, phone: user.phone, full_name: user.full_name, deviceId: user.deviceId }));
+    if (!deviceId) return setError('Ошибка: нет deviceId');
+    const expected = generateExpectedCode(deviceId, SECRET);
+    if (code.trim().toUpperCase() === expected) {
+      await storageService.setItem('license_valid', true);
       navigate('/password');
-    } catch (err) {
-      console.error('Error in handleSubmit:', err);
-      setError('Произошла ошибка. Пожалуйста, попробуйте снова.');
-    } finally {
-      setIsLoading(false);
+    } else {
+      setError('Неверный код активации');
     }
+  };
+
+  const handleDemo = () => {
+    dispatch(setDemoMode(true))
+    navigate('/home');
   };
 
   return (
@@ -88,17 +51,18 @@ export const LoginPage = () => {
       {/* Форма */}
       <div className="w-full px-4 flex-1 flex flex-col justify-center max-w-md mx-auto">
         <div>
-          <h1 className="text-2xl font-medium mb-8 flex justify-center items-center">Вход в T-Wallet</h1>
+          <h1 className="text-2xl font-medium mb-8 flex justify-center items-center">Вход по коду активации</h1>
           
           <div className="space-y-6">
             <div>
               <input
-                type="tel"
-                id="phone"
-                value={phone}
-                onChange={(e) => setPhoneInput(e.target.value)}
+                type="text"
+                id="license_code"
+                value={code}
+                onChange={e => setCode(e.target.value)}
                 className="w-full h-14 px-4 bg-[#f6f7f8] rounded-xl border-none focus:ring-0 text-lg"
-                placeholder="Телефон"
+                placeholder="Код активации"
+                autoFocus
               />
             </div>
 
@@ -108,10 +72,23 @@ export const LoginPage = () => {
 
             <button
               onClick={handleSubmit}
-              disabled={isLoading}
-              className="w-full h-14 flex justify-center items-center rounded-xl text-lg font-medium text-black bg-[#ffdd2d] hover:bg-[#ffd42d] disabled:opacity-50"
+              className="w-full h-14 flex justify-center items-center rounded-xl text-lg font-medium text-black bg-[#ffdd2d] hover:bg-[#ffd42d]"
             >
-              {isLoading ? 'Подождите...' : 'Продолжить'}
+              Войти
+            </button>
+            <button
+              type="button"
+              className="w-full h-14 flex justify-center items-center rounded-xl text-lg font-medium text-black bg-blue-100 hover:bg-blue-200"
+              onClick={() => navigate('/how-to-buy')}
+            >
+              Купить
+            </button>
+            <button
+              type="button"
+              className="w-full h-14 flex justify-center items-center rounded-xl text-lg font-medium text-black bg-gray-200 hover:bg-gray-300"
+              onClick={handleDemo}
+            >
+              Демо
             </button>
           </div>
         </div>

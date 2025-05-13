@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { setUser, clearAuth, setPassword, setIsLoggedIn } from '../store/slices/authSlice';
 import { fetchAccounts } from '../store/slices/accountSlice';
@@ -28,6 +28,7 @@ import { StatementCreatedPage } from '../pages/StatementCreatedPage';
 import { ChatPage } from '../pages/ChatPage';
 import { CityPage } from '../pages/CityPage';
 import { PaymentsPage } from '../pages/PaymentsPage';
+import { HowToBuy } from '../pages/HowToBuy';
 
 // Временные компоненты для меню
 const AtmsPage = () => <div className="p-4">Страница банкоматов</div>;
@@ -59,7 +60,8 @@ const isBrowser = () => {
 export const AppRoutes = () => {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
-  const { isLoggedIn } = useSelector((state: RootState) => state.auth);
+  const location = useLocation();
+  const { isLoggedIn, demoMode } = useSelector((state: RootState) => state.auth);
   const deviceId = useDeviceId();
   const [isInitialized, setIsInitialized] = useState(false);
 
@@ -78,13 +80,14 @@ export const AppRoutes = () => {
         // Загружаем счета
         await dispatch(fetchAccounts()).unwrap();
 
-        const [storedDeviceId, storedUserId, storedIsLoggedIn, storedPhone, storedPassword, storedFullName] = await Promise.all([
+        const [storedDeviceId, storedUserId, storedIsLoggedIn, storedPhone, storedPassword, storedFullName, licenseValid] = await Promise.all([
         storageService.getItem<string>('deviceId'),
         storageService.getItem<string>('userId'),
         storageService.getItem<boolean>('isLoggedIn'),
         storageService.getItem<string>('phone'),
-          storageService.getItem<string>('password'),
-          storageService.getItem<string>('full_name')
+        storageService.getItem<string>('password'),
+        storageService.getItem<string>('full_name'),
+        storageService.getItem<boolean>('license_valid')
       ]);
 
       console.log('Initializing app with state:', {
@@ -93,7 +96,8 @@ export const AppRoutes = () => {
         storedIsLoggedIn,
         storedPhone,
         storedPassword,
-          storedFullName,
+        storedFullName,
+        licenseValid,
         currentDeviceId: deviceId,
         currentIsLoggedIn: isLoggedIn
       });
@@ -103,7 +107,14 @@ export const AppRoutes = () => {
         setIsInitialized(true);
         return;
       }
+      // Если лицензии нет и не demoMode, и мы не на /login и не на /how-to-buy — редиректим на /login
+      if (!licenseValid && !demoMode && location.pathname !== '/login' && location.pathname !== '/how-to-buy') {
+        navigate('/login');
+        setIsInitialized(true);
+        return;
+      }
 
+      /*
       // Если у нас есть сохраненные данные пользователя
       if (storedDeviceId && storedUserId && storedPhone) {
         // Проверяем, что deviceId совпадает
@@ -136,6 +147,7 @@ export const AppRoutes = () => {
         // Если нет сохраненных данных, показываем страницу входа
         navigate('/login');
       }
+      */
       } catch (error) {
         console.error('Error initializing app:', error);
         // В случае ошибки показываем страницу входа
@@ -146,7 +158,7 @@ export const AppRoutes = () => {
     };
 
     init();
-  }, [dispatch, deviceId, navigate, isLoggedIn]);
+  }, [dispatch, deviceId, navigate, isLoggedIn, demoMode, location.pathname]);
 
   // Показываем лоадер, пока приложение инициализируется
   if (!isInitialized) {
@@ -168,6 +180,7 @@ export const AppRoutes = () => {
     <Routes>
       {/* Публичные маршруты */}
       <Route path="/login" element={!isLoggedIn ? <LoginPage /> : <Navigate to="/home" />} />
+      <Route path="/how-to-buy" element={<HowToBuy />} />
       <Route path="/password" element={!isLoggedIn ? <PasswordPage /> : <Navigate to="/home" />} />
       
       {/* Защищенные маршруты */}
