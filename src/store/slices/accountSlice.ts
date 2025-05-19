@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
-import { Account, Card, Currency } from '../../types/account';
+import { Account, Card, Currency } from '../../types/interface';
 import { LocalStorageService } from '../../services/localStorageService';
 
 export interface AccountState {
@@ -7,6 +7,8 @@ export interface AccountState {
   loading: boolean;
   error: string | null;
   selectedAccountId: string | null;
+  cards: Card[];
+  transactions: any[];
 }
 
 const initialState: AccountState = {
@@ -14,12 +16,16 @@ const initialState: AccountState = {
   loading: false,
   error: null,
   selectedAccountId: null,
+  cards: [],
+  transactions: [],
 };
 
-export type NewAccountFormData = {
+export type AccountFormData = {
   name: string;
   ownerName: string;
   accountNumber: string;
+  dateСreation: string;
+  contractNumber: string;
   currency: Currency;
 };
 
@@ -38,7 +44,7 @@ export const fetchAccounts = createAsyncThunk(
 
 export const createAccount = createAsyncThunk(
   'account/createAccount',
-  async (accountData: NewAccountFormData) => {
+  async (accountData: AccountFormData) => {
     console.log('Creating new account:', accountData);
     const newAccount = await LocalStorageService.getInstance().addAccount(accountData);
     if (!newAccount) {
@@ -46,6 +52,18 @@ export const createAccount = createAsyncThunk(
     }
     console.log('Created account:', newAccount);
     return newAccount;
+  }
+);
+
+
+export const updateAccount = createAsyncThunk(
+  'account/updateAccount',
+  async ({ accountId, data }: { accountId: string; data: AccountFormData }) => {
+    const updatedAccount = await LocalStorageService.getInstance().updateAccount(accountId, data);
+    if (!updatedAccount) {
+      throw new Error('Failed to update account');
+    }
+    return updatedAccount;
   }
 );
 
@@ -78,6 +96,20 @@ const accountSlice = createSlice({
     },
     setSelectedAccountId: (state, action: PayloadAction<string | null>) => {
       state.selectedAccountId = action.payload;
+    },
+    deleteAccount: (state, action: PayloadAction<string>) => {
+      const accountId = action.payload;
+      // Удаляем счет
+      state.accounts = state.accounts.filter(account => account.id !== accountId);
+      // Удаляем все карты этого счета
+      state.cards = state.cards.filter(card => card.accountId !== accountId);
+      // Удаляем все транзакции этого счета
+      state.transactions = state.transactions.filter(
+        transaction => transaction.accountId !== accountId
+      );
+      
+      // Сохраняем изменения в хранилище
+      LocalStorageService.getInstance().saveAccounts(state.accounts);
     }
   },
   extraReducers: (builder) => {
@@ -134,7 +166,8 @@ export const {
   setAccounts, 
   setLoading, 
   setError,
-  setSelectedAccountId
+  setSelectedAccountId,
+  deleteAccount
 } = accountSlice.actions;
 
 export default accountSlice.reducer; 

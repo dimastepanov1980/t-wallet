@@ -1,16 +1,18 @@
-import { stores } from './config';
+import { getStores } from './config';
 
 export const storageService = {
-  async setItem(key: string, value: any): Promise<void> {
+  async setItem(key: string, value: any, isDemoMode: boolean = false): Promise<void> {
     try {
+      const stores = getStores(isDemoMode);
       await stores.auth.setItem(key, value);
     } catch (error) {
       console.error('Error saving to storage:', error);
     }
   },
 
-  async getItem<T>(key: string): Promise<T | null> {
+  async getItem<T>(key: string, isDemoMode: boolean = false): Promise<T | null> {
     try {
+      const stores = getStores(isDemoMode);
       return await stores.auth.getItem<T>(key);
     } catch (error) {
       console.error('Error reading from storage:', error);
@@ -18,29 +20,29 @@ export const storageService = {
     }
   },
 
-  async removeItem(key: string): Promise<void> {
+  async removeItem(key: string, isDemoMode: boolean = false): Promise<void> {
     try {
+      const stores = getStores(isDemoMode);
       await stores.auth.removeItem(key);
     } catch (error) {
       console.error('Error removing from storage:', error);
     }
   },
 
-  async clear(): Promise<void> {
+  async clear(isDemoMode: boolean = false): Promise<void> {
     try {
+      const stores = getStores(isDemoMode);
       await stores.auth.clear();
     } catch (error) {
       console.error('Error clearing storage:', error);
     }
   },
 
-  async clearAllStorages(): Promise<void> {
+  async clearAllStorages(isDemoMode: boolean = false): Promise<void> {
     try {
-      console.log('Clearing all storages...');
-      // Очищаем все хранилища
+      const stores = getStores(isDemoMode);
       await stores.auth.clear();
       await stores.accounts.clear();
-      console.log('All storages cleared successfully');
     } catch (error) {
       console.error('Error clearing all storages:', error);
     }

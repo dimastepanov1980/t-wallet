@@ -1,13 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { BorderCard } from '../components/ui/BorderCard';
 import { Header } from '../components/ui/Header';
 import { RootState } from '../store';
 import { Account, Transaction, Card as CardType } from '../types/interface';
 import { CreditCardIcon } from '../components/CreditCardIcon';
-import { ArrowRightIcon, ChevronRightIcon } from '@heroicons/react/24/solid';
+import { ArrowRightIcon, ChevronRightIcon, PencilIcon } from '@heroicons/react/24/solid';
 import { Operations } from '../components/Operations';
+import { deleteAccount } from '../store/slices/accountSlice';
+import { ConfirmDeleteModal } from '../components/ConfirmDeleteModal';
+import { AppDispatch } from '../store';
 
 export const AccountDetailsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -18,6 +21,8 @@ export const AccountDetailsPage: React.FC = () => {
   const { accounts } = useSelector((state: RootState) => ({
     accounts: state.accounts.accounts
   }));
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const dispatch = useDispatch<AppDispatch>();
 
     // Helper function to get current month in Russian
   const getCurrentMonth = () => {
@@ -61,6 +66,17 @@ export const AccountDetailsPage: React.FC = () => {
     return <div>Account not found</div>;
   }
 
+  const handleDeleteAccount = async () => {
+    if (!accountId) return;
+    
+    try {
+      dispatch(deleteAccount(accountId));
+      navigate('/add-account');
+    } catch (error) {
+      console.error('Failed to delete account:', error);
+    }
+  };
+
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
       <Header  bgColor="gray-800" textColor="gray-100" />
@@ -70,10 +86,17 @@ export const AccountDetailsPage: React.FC = () => {
       }}>
         {/* Account name and balance */}
         <div className="p-4 bg-gray-800 text-gray-100">
-          <h1 className="text-xl font-medium">{account.name}</h1>
+         
+          <div className="flex items-center mb-4">
+            <h1 className="text-xl font-medium">{account.name}</h1>
+            <button className="text-sm text-gray-100 bg-transparent" onClick={() => navigate(`/add-account/${account.id}`)}>
+              <PencilIcon className="w-5 h-5" />
+            </button>
+          </div>
           <p className="text-3xl font-bold mt-2">
             {account.balance.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {account.currency === 'RUB' ? '₽' : account.currency}
           </p>
+         
         </div>
 
         {/* Cards list */}
@@ -199,13 +222,31 @@ export const AccountDetailsPage: React.FC = () => {
             <span>Заказать справку</span>
             <ChevronRightIcon className="w-5 h-5 text-gray-400" />
           </button>
-          <button className="text-m font-light bg-transparent w-full flex items-center justify-between text-left">
-            <span>Защита карт</span>
-            <ChevronRightIcon className="w-5 h-5 text-gray-400" />
-          </button>
+          <div className="space-y-4">
+            <button className="text-m font-light bg-transparent w-full flex items-center justify-between text-left">
+              <span>Защита карт</span>
+              <ChevronRightIcon className="w-5 h-5 text-gray-400" />
+            </button>
+
+            <button 
+              onClick={() => setIsDeleteModalOpen(true)}
+              className="text-m font-light bg-transparent w-full flex items-center justify-between text-left text-red-500"
+            >
+              <span>Удалить счет</span>
+              <ChevronRightIcon className="w-5 h-5 text-red-500" />
+            </button>
+          </div>
         </div>
         </div>
       </div>
+
+      <ConfirmDeleteModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleDeleteAccount}
+        title="Удалить счет?"
+        message="Это действие нельзя отменить. Все карты и транзакции, связанные с этим счетом, будут удалены."
+      />
     </div>
   );
 }; 

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store';
-import { Account } from '../types/interface';
+import { Account, User } from '../types/interface';
 import { PDFDocument, PDFPage, rgb, StandardFonts, PDFFont, PDFImage } from 'pdf-lib';
 import CyrillicToTranslit from 'cyrillic-to-translit-js';
 import { useNavigate } from 'react-router-dom';
@@ -40,11 +40,14 @@ function formatDateTimeToLines(isoString: string): [string, string] {
   return [dateStr, timeStr];
 }
 
-async function generateStatementPDF({ account, period, operationType, customPeriod, transactions }: { account: Account, period: string, operationType: string, customPeriod: {from: string, to: string}|null, transactions: any[] }): Promise<Blob> {
-  //const existingPdfBytes = await fetch('/template/template.pdf').then(res => res.arrayBuffer());
-//  const pdfDoc = await PDFDocument.load(existingPdfBytes);
- // const pdfDoc = await PDFDocument.create();
-  //const [page] = pdfDoc.getPages();
+async function generateStatementPDF({ account, user, period, operationType, customPeriod, transactions }: { 
+  account: Account, 
+  user: User,
+  period: string, 
+  operationType: string, 
+  customPeriod: {from: string, to: string}|null, 
+  transactions: any[] 
+}): Promise<Blob> {
 
   const pdfDoc = await PDFDocument.create();
   let currentPage = pdfDoc.addPage([595, 842]); // A4
@@ -73,28 +76,13 @@ async function generateStatementPDF({ account, period, operationType, customPeri
 
   // Транслитерируем все строки
   const ownerName = cyrillicToTranslit.transform(account.ownerName);
-  const ownerAddress = account.ownerAddress ? cyrillicToTranslit.transform(account.ownerAddress) : '127537 Moscow, Russia, 26, BLD. 26, 2 KHUTORSKAYA STREET';
+  const ownerAddress = cyrillicToTranslit.transform(user.address || '127537 Moscow, Russia, 26, BLD. 26, 2 KHUTORSKAYA STREET');
   const accNumber = cyrillicToTranslit.transform(account.accountNumber);
   const contractNumber = account.contractNumber || '543212345278';
-  const contractDate = account.contractDate || '14.02.2024';
+  const contractDate = account.dateСreation || '14.02.2024';
   const docNumber = `# b 000${Math.floor(1000 + Math.random() * 9000)}`;
   const dateStr = formatDateTimeToLines(new Date().toISOString())[0];
-  /*
-  for (let y = 800; y >= 50; y -= 50) {
-    page.drawText(`Y = ${y}`, { x: 20, y, size: 8, color: rgb(1, 0, 0), font });
-    page.drawLine({start: { x: 55, y: y }, end: { x: 540, y: y }, thickness: 1, color: rgb(0, 0.5, 0), });
-    page.drawLine({start: { x: 55, y: y + 10 }, end: { x: 540, y: y + 10 }, thickness: 0.3, color: rgb(0.2, 0.2, 0.2), });
-    page.drawLine({start: { x: 55, y: y + 20 }, end: { x: 540, y: y + 20 }, thickness: 0.3, color: rgb(0.2, 0.2, 0.2), });
-    page.drawLine({start: { x: 55, y: y + 30 }, end: { x: 540, y: y + 30 }, thickness: 0.3, color: rgb(0.2, 0.2, 0.2), });
-    page.drawLine({start: { x: 55, y: y + 40 }, end: { x: 540, y: y + 40 }, thickness: 0.3, color: rgb(0.2, 0.2, 0.2), });
-
-  }
-  for (let x = 50; x <= 500; x += 50) {
-    page.drawText(`X = ${x}`, { x, y: 820, size: 8, color: rgb(0, 0, 1), font });
-    page.drawLine({start: { x, y: 55 }, end: { x, y: 800 }, thickness: 1, color: rgb(0, 0.5, 0), });
-  }
-  */
-
+  
   // Header
   drawHeader(currentPage, context, true);
 
@@ -127,11 +115,6 @@ async function generateStatementPDF({ account, period, operationType, customPeri
   currentPage.drawText(`${accNumber}`, { x: 160, y: 585, size: 8, font: font, color: rgb(0,0,0)});
 
   currentPage.drawLine({start: { x: 55, y: 580 }, end: { x: 540, y: 580 }, thickness: 0.3, color: rgb(0.5, 0.5, 0.5), });
-
-  
-  //page.drawText(accNumber, { x: 55, y: 755, size: 12, font, color: rgb(0,0,0) });
-  //page.drawText(`Owner: ${accOwner}`, { x: 55, y: 735, size: 12, font, color: rgb(0,0,0) });
-  //page.drawText(`Currency: ${accCurrency}`, { x: 55, y: 720, size: 12, font, color: rgb(0,0,0) });
 
   let periodText = '';
 
@@ -275,6 +258,7 @@ const drawTable = (page: PDFPage, context: DrawContext, isFirstPage: boolean = f
 
 export const StatementPage = () => {
   const { accounts } = useSelector((state: RootState) => state.accounts);
+  const user = useSelector((state: RootState) => state.auth);
   const [selectedAccount, setSelectedAccount] = useState(accounts[0]?.id || '');
   const [operationType, setOperationType] = useState('all');
   const [period, setPeriod] = useState('1m');
@@ -288,7 +272,7 @@ export const StatementPage = () => {
   const handleGenerate = async () => {
     if (!selectedAcc) return;
     setLoading(true);
-    const pdfBlob = await generateStatementPDF({ account: selectedAcc, period, operationType, customPeriod, transactions });
+    const pdfBlob = await generateStatementPDF({ account: selectedAcc, user, period, operationType, customPeriod, transactions });
     setLoading(false);
     const pdfUrl = URL.createObjectURL(pdfBlob); 
     navigate('/statement-created', { state: { pdfUrl } });
@@ -296,9 +280,9 @@ export const StatementPage = () => {
 
   return (
     <div className="min-h-screen bg-white flex flex-col p-4">
-      <div className="text-2xl font-bold mb-6">Account Statement</div>
+      <div className="text-2xl font-bold mb-6">Выписка по счету</div>
       <div className="mb-4">
-        <div className="text-gray-600 mb-2">Select Account</div>
+        <div className="text-gray-600 mb-2">Выберите счет</div>
         <select
           className="w-full p-4 rounded-xl bg-gray-100 text-lg font-medium mb-2"
           value={selectedAccount}
@@ -312,19 +296,19 @@ export const StatementPage = () => {
         </select>
       </div>
       <div className="mb-4">
-        <div className="text-gray-600 mb-2">Transaction Type</div>
+        <div className="text-gray-600 mb-2">Тип транзакции</div>
         <select
           className="w-full p-4 rounded-xl bg-gray-100 text-lg font-medium"
           value={operationType}
           onChange={e => setOperationType(e.target.value)}
         >
-          <option value="all">All transactions</option>
-          <option value="incoming">Incoming only</option>
-          <option value="outgoing">Outgoing only</option>
+          <option value="all">Все транзакции</option>
+          <option value="incoming">Только пополнения</option>
+          <option value="outgoing">Только снятие</option>
         </select>
       </div>
       <div className="mb-4">
-        <div className="text-gray-600 mb-2">Period</div>
+        <div className="text-gray-600 mb-2">Период</div>
         <div className="flex gap-2 flex-wrap mb-2">
           {periods.map(p => (
             <button
@@ -339,13 +323,13 @@ export const StatementPage = () => {
             className={`px-4 py-2 rounded-full border ${period==='custom'?'bg-blue-500 text-white border-blue-500':'bg-gray-100 text-gray-700 border-gray-200'}`}
             onClick={()=>setPeriod('custom')}
           >
-            Custom period
+            Выбрать период
           </button>
         </div>
         {period==='custom' && (
           <div className="flex gap-2 mt-2">
-            <input type="date" className="p-2 rounded-xl border border-gray-200" value={customPeriod?.from||''} onChange={e=>setCustomPeriod(cp=>({from:e.target.value, to:cp?.to||''}))} />
-            <input type="date" className="p-2 rounded-xl border border-gray-200" value={customPeriod?.to||''} onChange={e=>setCustomPeriod(cp=>({from:cp?.from||'', to:e.target.value}))} />
+            <input type="date" className="bg-white p-2 rounded-xl border border-gray-200" value={customPeriod?.from||''} onChange={e=>setCustomPeriod(cp=>({from:e.target.value, to:cp?.to||''}))} />
+            <input type="date" className="bg-white p-2 rounded-xl border border-gray-200" value={customPeriod?.to||''} onChange={e=>setCustomPeriod(cp=>({from:cp?.from||'', to:e.target.value}))} />
           </div>
         )}
       </div>

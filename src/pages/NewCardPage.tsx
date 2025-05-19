@@ -1,19 +1,20 @@
 import React, { useState } from 'react';
 import { Header } from '../components/ui/Header';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { addCardToAccount } from '../store/slices/accountSlice';
 import { CardType } from '../types/account';
-import { AppDispatch } from '../store';
+import { AppDispatch, RootState } from '../store';
 
 export const NewCardPage = () => {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const { accountId } = useParams<{ accountId: string }>();
+  const { full_name } = useSelector((state: RootState) => state.auth);
   
   const [formData, setFormData] = useState({
     name: '',
-    holderName: '',
+    holderName: full_name || '',
     cardNumber: '',
     type: 'mastercard' as CardType,
     balance: 0
@@ -53,7 +54,6 @@ export const NewCardPage = () => {
     setError('');
     setIsLoading(true);
 
-    // Проверяем только длину номера карты
     const cardNumberWithoutSpaces = formData.cardNumber.replace(/\s/g, '');
     if (cardNumberWithoutSpaces.length !== 16) {
       setError('Номер карты должен содержать 16 цифр');
@@ -66,6 +66,7 @@ export const NewCardPage = () => {
         accountId: accountId!,
         card: {
           ...formData,
+          accountId: accountId!,
           cardNumber: cardNumberWithoutSpaces
         }
       })).unwrap();
@@ -87,6 +88,23 @@ export const NewCardPage = () => {
       {/* Main content */}
       <div className="flex flex-col gap-4 p-4 pt-[calc(env(safe-area-inset-top))]">
         <form onSubmit={handleSubmit} className="space-y-4">
+
+        <div className="bg-white rounded-2xl p-4">
+            <label className="block">
+              <span className="text-sm text-gray-500">Имя держателя</span>
+              <input
+                type="text"
+                name="holderName"
+                value={formData.holderName}
+                onChange={handleChange}
+                className="mt-1 block w-full rounded-xl bg-gray-50 border-0 py-3 px-4 text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-blue-600"
+                placeholder="Как указано на карте"
+                required
+              />
+            </label>
+          </div>
+
+
           <div className="bg-white rounded-2xl p-4">
             <label className="block">
               <span className="text-sm text-gray-500">Название карты</span>
@@ -97,21 +115,6 @@ export const NewCardPage = () => {
                 onChange={handleChange}
                 className="mt-1 block w-full rounded-xl bg-gray-50 border-0 py-3 px-4 text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-blue-600"
                 placeholder="Например: Основная карта"
-                required
-              />
-            </label>
-          </div>
-
-          <div className="bg-white rounded-2xl p-4">
-            <label className="block">
-              <span className="text-sm text-gray-500">Имя держателя</span>
-              <input
-                type="text"
-                name="holderName"
-                value={formData.holderName}
-                onChange={handleChange}
-                className="mt-1 block w-full rounded-xl bg-gray-50 border-0 py-3 px-4 text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-blue-600"
-                placeholder="Как указано на карте"
                 required
               />
             </label>

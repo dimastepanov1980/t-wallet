@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeftCircleIcon, ArrowLeftIcon, ArrowUpLeftIcon, ChevronDoubleLeftIcon, ChevronLeftIcon } from '@heroicons/react/24/outline';
+import { ChevronLeftIcon } from '@heroicons/react/24/outline';
 
 interface HeaderProps {
   title?: string;

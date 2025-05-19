@@ -90,13 +90,14 @@ export const HomePage = () => {
   return (
     <div className="flex flex-col gap-8 p-4 bg-gray-50">
       {/* Header with avatar and name */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3" onClick={() => navigate('/user-profile')}>
         <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center">
           <span className="text-xl font-medium text-gray-600">
             {full_name?.[0] || 'N'}
           </span>
         </div>
         <span className="text-lg font-medium">{full_name || 'Name'}</span>
+        
       </div>
 
       {/* Search bar */}

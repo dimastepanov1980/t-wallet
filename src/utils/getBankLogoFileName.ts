@@ -3,7 +3,7 @@ const BANK_LOGOS: Record<string, string> = {
   'газпромбанк': 'gazprombank.svg',
   'мкб': 'mkb.svg',
   'райффайзен': 'raiffeisen.svg',
-  'тинькофф': 'tinkoff.svg',
+  'тинькофф': 'tbank.svg',
   'втб': 'vtb.svg',
   'альфабанк': 'alfabank.svg',
   'росбанк': 'rosbank.svg',

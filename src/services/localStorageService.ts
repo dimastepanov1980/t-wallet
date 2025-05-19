@@ -1,5 +1,6 @@
-import { Account, Card, Transaction, Currency } from '../types/account';
-import { stores } from './config';
+import { Account, Card, Transaction, Currency } from '../types/interface';
+import { getStores } from './config';
+import { AccountFormData } from '../store/slices/accountSlice';
 
 const STORAGE_KEYS = {
   ACCOUNTS: 'accounts',
@@ -9,8 +10,11 @@ const STORAGE_KEYS = {
 
 export class LocalStorageService {
   private static instance: LocalStorageService;
+  private isDemoMode: boolean;
 
-  private constructor() {}
+  private constructor() {
+    this.isDemoMode = false; // default value
+  }
 
   static getInstance(): LocalStorageService {
     if (!LocalStorageService.instance) {
@@ -19,8 +23,17 @@ export class LocalStorageService {
     return LocalStorageService.instance;
   }
 
+  setDemoMode(isDemoMode: boolean) {
+    this.isDemoMode = isDemoMode;
+  }
+
+  private getStoresInstance() {
+    return getStores(this.isDemoMode);
+  }
+
   async getAccounts(): Promise<Account[]> {
     try {
+      const stores = this.getStoresInstance();
       const accounts = await stores.accounts.getItem<Account[]>(STORAGE_KEYS.ACCOUNTS);
       return accounts || [];
     } catch (error) {
@@ -31,9 +44,9 @@ export class LocalStorageService {
 
   async saveAccounts(accounts: Account[]): Promise<void> {
     try {
+      const stores = this.getStoresInstance();
       console.log('Saving accounts:', accounts);
       await stores.accounts.setItem(STORAGE_KEYS.ACCOUNTS, accounts);
-      // Проверяем, что данные сохранились
       const savedAccounts = await stores.accounts.getItem<Account[]>(STORAGE_KEYS.ACCOUNTS);
       console.log('Saved accounts:', savedAccounts);
     } catch (error) {
@@ -45,6 +58,8 @@ export class LocalStorageService {
     name: string; 
     ownerName: string; 
     accountNumber: string;
+    contractNumber: string;
+    dateСreation: string;
     currency: Currency;
   }): Promise<Account> {
     try {
@@ -53,14 +68,15 @@ export class LocalStorageService {
       
       const newAccount: Account = {
         id: `acc-${Date.now()}`,
+        dateСreation: accountData.dateСreation,
         name: accountData.name,
         ownerName: accountData.ownerName,
         accountNumber: accountData.accountNumber,
+        contractNumber: accountData.contractNumber,
         cards: [],
         currency: accountData.currency,
         balance: 0,
         monthlyBalances: [],
-        createdAt: new Date().toISOString()
       };
       
       accounts.push(newAccount);
@@ -71,6 +87,28 @@ export class LocalStorageService {
     } catch (error) {
       console.error('Error adding account:', error);
       throw error;
+    }
+  }
+
+  async updateAccount(accountId: string, accountData: AccountFormData): Promise<Account | null> {
+    try {
+      const accounts = await this.getAccounts();
+      const index = accounts.findIndex(acc => acc.id === accountId);
+      
+      if (index === -1) return null;
+      
+      const updatedAccount = {
+        ...accounts[index],
+        ...accountData,
+        cards: accounts[index].cards // Сохраняем существующие карты
+      };
+      
+      accounts[index] = updatedAccount;
+      await this.saveAccounts(accounts);
+      return updatedAccount;
+    } catch (error) {
+      console.error('Error updating account:', error);
+      return null;
     }
   }
 
@@ -171,6 +209,7 @@ export class LocalStorageService {
 
   async setSelectedAccount(accountId: string): Promise<void> {
     try {
+      const stores = this.getStoresInstance();
       await stores.accounts.setItem(STORAGE_KEYS.SELECTED_ACCOUNT, accountId);
     } catch (error) {
       console.error('Error setting selected account:', error);
@@ -179,6 +218,7 @@ export class LocalStorageService {
 
   async getSelectedAccount(): Promise<string | null> {
     try {
+      const stores = this.getStoresInstance();
       return await stores.accounts.getItem<string>(STORAGE_KEYS.SELECTED_ACCOUNT);
     } catch (error) {
       console.error('Error getting selected account:', error);
@@ -188,6 +228,7 @@ export class LocalStorageService {
 
   async setSelectedCard(cardId: string): Promise<void> {
     try {
+      const stores = this.getStoresInstance();
       await stores.accounts.setItem(STORAGE_KEYS.SELECTED_CARD, cardId);
     } catch (error) {
       console.error('Error setting selected card:', error);
@@ -196,6 +237,7 @@ export class LocalStorageService {
 
   async getSelectedCard(): Promise<string | null> {
     try {
+      const stores = this.getStoresInstance();
       return await stores.accounts.getItem<string>(STORAGE_KEYS.SELECTED_CARD);
     } catch (error) {
       console.error('Error getting selected card:', error);

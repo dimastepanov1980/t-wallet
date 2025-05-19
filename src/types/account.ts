@@ -18,12 +18,13 @@ export interface Transaction {
 
 export interface Card {
   id: string;
-  type: CardType;
-  holderName: string;
-  cardNumber: string;
   name: string;
-  transactions: Transaction[];
+  cardNumber: string;
+  type: CardType;
   balance: number;
+  accountId: string;
+  holderName: string;
+  transactions: Transaction[];
 }
 
 export interface MonthlyBalance {
@@ -41,5 +42,5 @@ export interface Account {
   cards: Card[];
   balance: number;
   monthlyBalances: MonthlyBalance[];
-  createdAt: string;
+  dateСreation: string;
 } 

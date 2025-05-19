@@ -30,7 +30,9 @@ export const useSession = () => {
         storageService.getItem<string>('userId'),
         storageService.getItem<string>('phone'),
         storageService.getItem<string>('deviceId'),
-        storageService.getItem<boolean>('isLoggedIn')
+        storageService.getItem<boolean>('isLoggedIn'),
+        storageService.getItem<string>('password'),
+        storageService.getItem<string>('licenseValid')
       ]);
 
       console.log('Restoring state:', {

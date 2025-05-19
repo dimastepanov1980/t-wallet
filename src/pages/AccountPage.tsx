@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
-import { createAccount } from '../store/slices/accountSlice';
-import { Currency } from '../types/account';
-import { AppDispatch } from '../store';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { createAccount, updateAccount } from '../store/slices/accountSlice';
+import { Account, Currency } from '../types/interface';  
+import { AppDispatch, RootState } from '../store';
 import { Header } from '../components/ui/Header';
 
 const CURRENCY_SYMBOLS: Record<Currency, string> = {
@@ -18,17 +18,39 @@ const CURRENCY_NAMES: Record<Currency, string> = {
   EUR: 'Евро'
 };
 
-export const NewAccountPage = () => {
+export const AccountPage = () => {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
+  const { accountId } = useParams();
+  const account = useSelector((state: RootState) => 
+    state.accounts.accounts.find((acc: Account) => acc.id === accountId)
+  );
+
+  const { full_name } = useSelector((state: RootState) => state.auth);
   const [formData, setFormData] = useState({
+    id: '',
     name: '',
-    ownerName: '',
+    ownerName: full_name || '',
     accountNumber: '',
-    currency: 'RUB' as Currency
+    dateСreation: '',
+    currency: 'RUB' as Currency,
+    contractNumber: ''
   });
   const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (account) {
+      setFormData({
+        id: account.id,
+        name: account.name,
+        ownerName: account.ownerName,
+        accountNumber: account.accountNumber,
+        dateСreation: account.dateСreation,
+        currency: account.currency,
+        contractNumber: account.contractNumber
+      });
+    }
+  }, [account]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -55,32 +77,51 @@ export const NewAccountPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    setIsLoading(true);
 
     // Проверяем номер счета
     if (formData.accountNumber.length !== 20) {
       setError('Номер счета должен содержать 20 цифр');
-      setIsLoading(false);
       return;
     }
 
     try {
-      await dispatch(createAccount(formData)).unwrap();
+      if (accountId) {
+        await dispatch(updateAccount({ 
+          accountId, 
+          data: formData
+        })).unwrap();
+      } else {
+        await dispatch(createAccount(formData)).unwrap();
+      }
       navigate('/add-account');
     } catch (err) {
       setError('Не удалось создать счет. Пожалуйста, попробуйте снова.');
-    } finally {
-      setIsLoading(false);
     }
-  };
+  };  
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header title="Добавить счет" />
+      <Header title={accountId ? 'Редактировать счет' : 'Добавить счет'} />
       
       {/* Main content */}
       <div className="flex flex-col gap-4 p-4 pt-20">
         <form onSubmit={handleSubmit} className="space-y-4">
+          
+        <div className="bg-white rounded-2xl p-4">
+            <label className="block">
+              <span className="text-sm text-gray-500">Владелец счета</span>
+              <input
+                type="text"
+                name="ownerName"
+                value={formData.ownerName}
+                onChange={handleChange}
+                className="mt-1 block w-full rounded-xl bg-gray-50 border-0 py-3 px-4 text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-blue-600"
+                placeholder="Указать реальное имя владельца"
+                required
+              />
+            </label>
+          </div>
+
           <div className="bg-white rounded-2xl p-4">
             <label className="block">
               <span className="text-sm text-gray-500">Название счета</span>
@@ -90,22 +131,23 @@ export const NewAccountPage = () => {
                 value={formData.name}
                 onChange={handleChange}
                 className="mt-1 block w-full rounded-xl bg-gray-50 border-0 py-3 px-4 text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-blue-600"
-                placeholder="Например: Основной счет"
+                placeholder="Указать название реального счета"
                 required
               />
             </label>
           </div>
 
+
           <div className="bg-white rounded-2xl p-4">
             <label className="block">
-              <span className="text-sm text-gray-500">Владелец счета</span>
+              <span className="text-sm text-gray-500">Дата открытия счета</span>
               <input
                 type="text"
-                name="ownerName"
-                value={formData.ownerName}
+                name="dateСreation"
+                value={formData.dateСreation}
                 onChange={handleChange}
                 className="mt-1 block w-full rounded-xl bg-gray-50 border-0 py-3 px-4 text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-blue-600"
-                placeholder="Введите имя владельца"
+                placeholder="дд.мм.гггг"
                 required
               />
             </label>
@@ -120,7 +162,7 @@ export const NewAccountPage = () => {
                 value={formData.accountNumber}
                 onChange={handleChange}
                 className="mt-1 block w-full rounded-xl bg-gray-50 border-0 py-3 px-4 text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-blue-600"
-                placeholder="20 цифр"
+                placeholder="Указать номер реального счета"
                 required
                 maxLength={20}
                 pattern="\d{20}"
@@ -131,6 +173,24 @@ export const NewAccountPage = () => {
             </label>
           </div>
 
+          <div className="bg-white rounded-2xl p-4">
+            <label className="block">
+              <span className="text-sm text-gray-500">Номер договора</span>
+              <input
+                type="text"
+                name="contractNumber"
+                value={formData.contractNumber}
+                onChange={handleChange}
+                className="mt-1 block w-full rounded-xl bg-gray-50 border-0 py-3 px-4 text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-blue-600"
+                placeholder="Введите 12 цифр"
+                required
+                maxLength={12}
+                pattern="\d{12}"
+              />
+            </label>
+          </div>
+
+          {!accountId &&
           <div className="bg-white rounded-2xl p-4">
             <label className="block">
               <span className="text-sm text-gray-500">Валюта счета</span>
@@ -149,17 +209,24 @@ export const NewAccountPage = () => {
               </select>
             </label>
           </div>
-
+          }
           {error && (
             <div className="text-red-500 text-sm">{error}</div>
           )}
+                        <div className="px-4 text-xs text-gray-500">
 
+              <span>
+                Важно: Укажите реальные данные, эти данные будут использоваться для выписки по счету.
+                <br/>
+                * Все данные хранятся только на вашем устройстве.
+              </span>
+            </div>
+              
           <button
             type="submit"
-            disabled={isLoading}
             className="w-full  bg-[#ffdd2d] hover:bg-[#ffd42d] text-gray-600 rounded-xl py-4 px-6 text-m font-light transition-colors disabled:opacity-50"
           >
-            {isLoading ? 'Создание счета...' : 'Создать счет'}
+            {accountId ? 'Сохранить' : 'Создать счет'}
           </button>
         </form>
       </div>

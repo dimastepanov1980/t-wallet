@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { setUser, clearAuth, setPassword, setIsLoggedIn } from '../store/slices/authSlice';
 import { fetchAccounts } from '../store/slices/accountSlice';
 import { RootState, AppDispatch } from '../store';
 import { useDeviceId } from '../hooks/useDeviceId';
 import { useSession } from '../hooks/useSession';
 import { storageService } from '../services/storageService';
+import { setUser, setPassword, setIsLoggedIn } from '../store/slices/authSlice';
+
 
 // Импортируем все страницы
 import { LoginPage } from '../pages/LoginPage';
@@ -16,19 +17,20 @@ import { TopUpPage } from '../pages/TopUpPage';
 import { CardTransferPage } from '../pages/CardTransferPage';
 import { MorePage } from '../pages/MorePage';
 import { AddAccountPage } from '../pages/AddAccountPage';
-import { NewAccountPage } from '../pages/NewAccountPage';
+import { AccountPage } from '../pages/AccountPage';
 import { NewCardPage } from '../pages/NewCardPage';
 import { LandingPage } from '../pages/LandingPage';
 import { TransactionsPage } from '../pages/TransactionsPage';
 import { Layout } from './Layout';
 import { AccountDetailsPage } from '../pages/AccountDetailsPage';
-import { TransactionGenerator } from './TransactionGenerator';
+import { TransactionGenerator } from '../pages/TransactionGenerator';
 import { StatementPage } from '../pages/StatementPage';
 import { StatementCreatedPage } from '../pages/StatementCreatedPage';
 import { ChatPage } from '../pages/ChatPage';
 import { CityPage } from '../pages/CityPage';
 import { PaymentsPage } from '../pages/PaymentsPage';
 import { HowToBuy } from '../pages/HowToBuy';
+import { UserProfile } from '../pages/UserProfile';
 
 // Временные компоненты для меню
 const AtmsPage = () => <div className="p-4">Страница банкоматов</div>;
@@ -42,11 +44,6 @@ const ServicesPage = () => <div className="p-4">Страница сервисо�
 
 // Функция для определения, запущено ли приложение в браузере
 const isBrowser = () => {
-  // В режиме разработки всегда показываем полное приложение
-/*  if (import.meta.env.DEV) {
-    return false;
-  }
-*/
 
   // Проверяем все возможные признаки PWA
   const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
@@ -80,13 +77,15 @@ export const AppRoutes = () => {
         // Загружаем счета
         await dispatch(fetchAccounts()).unwrap();
 
-        const [storedDeviceId, storedUserId, storedIsLoggedIn, storedPhone, storedPassword, storedFullName, licenseValid] = await Promise.all([
+        const [storedDeviceId, storedUserId, storedIsLoggedIn, storedPhone, storedPassword, storedFullName, storedAddress, storedEmail, licenseValid] = await Promise.all([
         storageService.getItem<string>('deviceId'),
         storageService.getItem<string>('userId'),
         storageService.getItem<boolean>('isLoggedIn'),
         storageService.getItem<string>('phone'),
         storageService.getItem<string>('password'),
         storageService.getItem<string>('full_name'),
+        storageService.getItem<string>('address'),
+        storageService.getItem<string>('email'),
         storageService.getItem<boolean>('license_valid')
       ]);
 
@@ -107,24 +106,29 @@ export const AppRoutes = () => {
         setIsInitialized(true);
         return;
       }
+     
       // Если лицензии нет и не demoMode, и мы не на /login и не на /how-to-buy — редиректим на /login
       if (!licenseValid && !demoMode && location.pathname !== '/login' && location.pathname !== '/how-to-buy') {
-        navigate('/login');
         setIsInitialized(true);
+        
+        navigate('/login');
+
         return;
       }
 
-      /*
+      
       // Если у нас есть сохраненные данные пользователя
-      if (storedDeviceId && storedUserId && storedPhone) {
+      if (storedDeviceId && licenseValid) {
         // Проверяем, что deviceId совпадает
         if (storedDeviceId === deviceId) {
           // Данные валидны, загружаем пользователя в Redux
             dispatch(setUser({ 
-              id: storedUserId, 
-              phone: storedPhone, 
-              deviceId: storedDeviceId,
-              full_name: storedFullName || '' 
+              id: storedUserId || '', 
+              phone: storedPhone || '', 
+              deviceId: storedDeviceId || '',
+              full_name: storedFullName || '',
+              email: storedEmail || '',
+              address: storedAddress || ''
             }));
             
             // Если есть сохраненный пароль, передаем его в Redux
@@ -138,16 +142,9 @@ export const AppRoutes = () => {
             // Если пользователь не авторизован, запрашиваем пароль
             navigate('/password');
             }
-        } else {
-          // Если deviceId не совпадает, сбрасываем авторизацию
-          dispatch(clearAuth());
-          navigate('/login');
         }
-      } else {
-        // Если нет сохраненных данных, показываем страницу входа
-        navigate('/login');
       }
-      */
+      
       } catch (error) {
         console.error('Error initializing app:', error);
         // В случае ошибки показываем страницу входа
@@ -196,12 +193,14 @@ export const AppRoutes = () => {
         <Route path="chat" element={isLoggedIn ? <ChatPage /> : <Navigate to="/password" />} />
         <Route path="more" element={isLoggedIn ? <MorePage /> : <Navigate to="/password" />} />
         <Route path="add-account" element={isLoggedIn ? <AddAccountPage /> : <Navigate to="/password" />} />
-        <Route path="add-account/new-account" element={isLoggedIn ? <NewAccountPage /> : <Navigate to="/password" />} />
+        <Route path="add-account/new-account" element={isLoggedIn ? <AccountPage /> : <Navigate to="/password" />} />
+        <Route path="add-account/:accountId" element={isLoggedIn ? <AccountPage /> : <Navigate to="/password" />} />
         <Route path="add-card/:accountId" element={isLoggedIn ? <NewCardPage /> : <Navigate to="/password" />} />
         <Route path="account/:accountId" element={isLoggedIn ? <AccountDetailsPage /> : <Navigate to="/password" />} />
         <Route path="statement/:accountId" element={isLoggedIn ? <StatementPage /> : <Navigate to="/password" />} />
         <Route path="statement-created" element={isLoggedIn ? <StatementCreatedPage onSendEmail={()=>{}} onDone={()=>{}} /> : <Navigate to="/password" />} />
         <Route path="chat" element={isLoggedIn ? <ChatPage /> : <Navigate to="/password" />} />
+        <Route path="user-profile" element={isLoggedIn ? <UserProfile /> : <Navigate to="/password" />} />
         {/* Новые маршруты для меню */}
         <Route path="atms" element={isLoggedIn ? <AtmsPage /> : <Navigate to="/password" />} />
         <Route path="security" element={isLoggedIn ? <SecurityPage /> : <Navigate to="/password" />} />

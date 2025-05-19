@@ -13,9 +13,10 @@ const banks: Bank[] = [
   { id: 4, name: 'Альфа-Банк', index: 'ALFA' },
   { id: 5, name: 'Россельхозбанк', index: 'RSHB' },
   { id: 6, name: 'Московский кредитный банк (МКБ)', index: 'MKB' },
-  { id: 7, name: 'Т-Банк', index: 'TINK' },
+  { id: 7, name: 'Тинькофф', index: 'TINK' },
   { id: 8, name: 'Совкомбанк', index: 'SVCB' },
   { id: 9, name: 'Райффайзен Банк', index: 'RAIF' },
+  { id: 10, name: 'Росбанк', index: 'ROS' },
 ];
 
 interface BankSelectProps {
@@ -39,7 +40,7 @@ export const BankSelect: React.FC<BankSelectProps> = ({ onSelect, className = ''
       <select
         value={selectedBank?.id || ''}
         onChange={handleChange}
-        className="mt-1 block w-full rounded-xl bg-gray-50 border-0 py-3 px-4 text-gray-900 focus:ring-2 focus:ring-blue-600"
+        className="mt-2 block  w-full rounded-xl bg-gray-50 border-0 py-3 px-4 text-gray-900 focus:ring-2 focus:ring-blue-600"
       >
         <option value="">Выберите банк</option>
         {banks.map((bank) => (

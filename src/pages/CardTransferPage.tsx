@@ -6,6 +6,8 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../store';
 import { LocalStorageService } from '../services/localStorageService';
 import { BankSelect } from '../components/BankSelect';
+import { ArrowPathRoundedSquareIcon } from '@heroicons/react/24/outline';
+import russianFullNames from '../utils/russianFullNames';
 
 export const CardTransferPage = () => {
   const { accountId } = useParams<{ accountId: string }>();
@@ -99,6 +101,31 @@ export const CardTransferPage = () => {
     }
   };
 
+  const generateRandomFullName = (): string => {
+    const index = Math.floor(Math.random() * russianFullNames.length);
+    return russianFullNames[index];
+  };
+  
+  const handleGenerateSenderName = () => {
+    const name = generateRandomFullName();
+    setSenderName(name);
+  };
+
+  const generateRandomCardNumber = (): string => {
+    const digits = Array.from({ length: 16 }, () =>
+      Math.floor(Math.random() * 10).toString()
+    ).join('');
+  
+    return formatCardNumber(digits); // Применяет пробелы как 0000 0000 0000 0000
+  };
+  
+  const handleGenerateCardNumber = () => {
+    const newCard = generateRandomCardNumber();
+    setCardNumber(newCard);
+    setShowSenderName(true);
+  };
+
+  
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
       {/* Header */}
@@ -110,16 +137,25 @@ export const CardTransferPage = () => {
       {/* Main content */}
       <div className="flex flex-col gap-4 p-4 pt-[calc(env(safe-area-inset-top))]">
 
+
+
         {/* Card input section */}
-        <div className="bg-white rounded-2xl p-4 cursor-pointer">
+        <div className="bg-white rounded-2xl p-4 flex items-center">
           <input
             type="text"
             placeholder={transferType === 'incoming' ? 'Номер карты' : 'Номер получателя'}
             value={cardNumber}
             onChange={handleCardNumberChange}
-            className="w-full bg-gray-50 rounded-xl p-4 text-lg outline-none"
+            className="flex-1 bg-gray-50 rounded-xl p-2 text-lg outline-none"
             maxLength={19}
           />
+          <button
+            type="button"
+            onClick={handleGenerateCardNumber}
+            className="bg-gray-50 ml-2 p-2 text-gray-500 hover:text-gray-700"
+          >
+            <ArrowPathRoundedSquareIcon className="w-6 h-6" />
+          </button>
         </div>
 
         {/* Bank select */}
@@ -140,14 +176,25 @@ export const CardTransferPage = () => {
 
         {/* Sender name input (показывается после ввода номера карты) */}
         {showSenderName && (
-          <div className="bg-white rounded-2xl p-4">
+          <div className="bg-white rounded-2xl p-4 flex items-center">
             <input
               type="text"
-              placeholder={transferType === 'incoming' ? 'ФИО отправителя' : 'ФИО получателя'}
+              placeholder={
+                transferType === 'incoming'
+                  ? 'Фамилия и Имя отправителя'
+                  : 'Фамилия и Имя получателя'
+              }
               value={senderName}
               onChange={(e) => setSenderName(e.target.value)}
-              className="w-full bg-gray-50 rounded-xl p-4 text-lg outline-none"
+              className="flex-1 bg-gray-50 rounded-xl p-4 text-lg outline-none"
             />
+            <button
+              type="button"
+              onClick={handleGenerateSenderName}
+              className="bg-gray-50 ml-2 p-2 text-gray-500 hover:text-gray-700"
+              >
+              <ArrowPathRoundedSquareIcon className="w-6 h-6" />
+            </button>
           </div>
         )}
 

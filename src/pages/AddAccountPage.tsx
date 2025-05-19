@@ -24,9 +24,7 @@ export const AddAccountPage = () => {
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="fixed top-0 left-0 right-0 bg-white z-10">
-      <Header title="Добавьте новый счет или карту" bgColor="white" textColor="gray-900" />
-      </div>
+    <Header title="Добавьте новый счет или карту" bgColor="white" textColor="gray-900" />
 
       {/* Main content */}
       <div className="flex flex-col gap-4 p-4 pt-[calc(env(safe-area-inset-top)+52px)]">
@@ -43,11 +41,11 @@ export const AddAccountPage = () => {
             onClick={() => setIsAccountDropdownOpen(!isAccountDropdownOpen)}
           >
             <div>
-              <p className="text-sm text-gray-500">Выберите счет</p>
               <div className="flex items-center gap-2">
                 <span className="text-xl">
                   {selectedAccount ? selectedAccount.name : 'Выберите счет'}
                 </span>
+                <div className="h-1 w-1 bg-gray-300 rounded-full"></div>
                 {selectedAccount && (
                   <span className="text-gray-500">{formatBalance(selectedAccount.balance)}</span>
                 )}
@@ -63,7 +61,7 @@ export const AddAccountPage = () => {
           {/* Account dropdown */}
           {isAccountDropdownOpen && (
             <div className="mt-4 space-y-4">
-              <ul role="list" className="divide-y divide-gray-200">
+              <ul role="list" className="border-t-[1px] py-4 border-gray-200 divide-y divide-gray-200">
                 {accounts.map((account: Account) => (
                   <li
                     key={account.id}
@@ -98,7 +96,8 @@ export const AddAccountPage = () => {
           <div className="bg-white rounded-2xl p-4">
             <h3 className="text-lg font-medium mb-4">Карты</h3>
             <div className="space-y-4">
-              <ul role="list" className="divide-y divide-gray-100">
+            <ul role="list" className="border-t-[1px] py-4 border-gray-200 divide-y divide-gray-200">
+
                 {selectedAccount.cards.map(card => (
                   <li
                     key={card.id}

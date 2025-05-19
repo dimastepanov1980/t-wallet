@@ -22,6 +22,7 @@ export interface Card {
   holderName: string;
   cardNumber: string;
   name: string;
+  accountId: string;
   transactions: Transaction[];
   balance: number;
 }
@@ -35,14 +36,23 @@ export interface MonthlyBalance {
 export interface Account {
   id: string;
   ownerName: string;
-  ownerAddress?: string;
   accountNumber: string;
-  contractNumber?: string;
-  contractDate?: string;
+  contractNumber: string;
   name: string;
   currency: Currency;
   cards: Card[];
   balance: number;
   monthlyBalances: MonthlyBalance[];
-  createdAt: string;
+  dateСreation: string;
 } 
+
+export interface User {
+  userId: string | null;
+  phone: string | null;
+  password: string | null;
+  full_name: string | null;
+  isLoggedIn: boolean;
+  demoMode: boolean;
+  email: string | null;
+  address: string | null;
+}
