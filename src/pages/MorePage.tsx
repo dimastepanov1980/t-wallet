@@ -1,6 +1,4 @@
-import { useState } from 'react';
 import { 
-  ArrowRightStartOnRectangleIcon,
   DocumentTextIcon, 
   ChatBubbleLeftRightIcon,
   Cog6ToothIcon,
@@ -14,9 +12,6 @@ import {
   PlusCircleIcon
 } from '@heroicons/react/24/outline';
 import { useNavigate } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
-import { logout } from '../store/slices/authSlice';
-import { RootState } from '../store';
 import { MenuItem } from '../components/MenuItem';
 export const MorePage = () => {
   const currencies = [
@@ -25,28 +20,8 @@ export const MorePage = () => {
     { code: 'GBP', value: '132,55' }
   ];
 
-  const dispatch = useDispatch();
   const navigate = useNavigate();
-  const [debugInfo, setDebugInfo] = useState<string>('');
 
-  const { userId, phone, full_name } = useSelector((state: RootState) => state.auth);
-
-  const handleLogout = () => {
-    dispatch(logout());
-    navigate('/login');
-  };
-
-  const checkStorage = async () => {
-    try {
-      setDebugInfo(JSON.stringify({
-        userId,
-        phone,
-        full_name
-      }, null, 2));
-    } catch (error: any) {
-      setDebugInfo(`Error: ${error?.message || 'Unknown error'}`);
-    }
-  };
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
@@ -172,32 +147,6 @@ export const MorePage = () => {
           </div>
         </div>
 
-         {/* Logout button */}
-         <button 
-          onClick={handleLogout}
-          className="w-full flex items-center justify-between p-4 bg-white rounded-2xl hover:bg-gray-50 text-red-600"
-        >
-          <div className="flex items-center gap-3">
-            <ArrowRightStartOnRectangleIcon className="w-6 h-6" />
-            <span>Выйти</span>
-          </div>
-        </button>
-
-        {/* Debug section */}
-        <div className="mt-8 p-4 border border-gray-200 rounded-xl">
-          <h2 className="text-lg font-medium mb-4">Отладка</h2>
-          <button
-            onClick={checkStorage}
-            className="w-full h-14 flex justify-center items-center rounded-xl text-lg font-medium text-black bg-gray-100 hover:bg-gray-200 mb-4"
-          >
-            Проверить хранилище
-          </button>
-          {debugInfo && (
-            <pre className="bg-gray-100 p-4 rounded-xl overflow-auto text-sm">
-              {debugInfo}
-            </pre>
-          )}
-        </div>
       </div>
     </div>
   );

@@ -207,7 +207,7 @@ async function generateStatementPDF({ account, user, period, operationType, cust
   currentPage.drawText('Best regards,', { x: 55, y, size: 9, font, color: rgb(0,0,0) });
   currentPage.drawText('Head of Back-office Department', { x: 55, y: y - 16, size: 9, font, color: rgb(0,0,0) });
   currentPage.drawText('E.S. Shadrina', { x: 450, y: y - 6, size: 9, font, color: rgb(0,0,0) });
-  currentPage.drawImage(stampPng, { x: 350, y: y - 50, width: 166, height: 86 });
+  currentPage.drawImage(stampPng, { x: 350, y: y - 80, width: 190, height: 100 });
 
   // Добавляем footer на последнюю страницу
   drawFooter(currentPage, context, pageNumber, totalPages);

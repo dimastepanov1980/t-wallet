@@ -9,6 +9,8 @@ import { useState } from 'react';
 import { updateUserProfile } from '../store/slices/authSlice';
 import { storageService } from '../services/storageService';
 import { useScrollLock } from '../hooks/useScrollLock';
+import { ArrowRightStartOnRectangleIcon } from '@heroicons/react/24/outline';
+import { logout } from '../store/slices/authSlice';
 
 
 export const UserProfile: React.FC = () => {
@@ -19,6 +21,12 @@ export const UserProfile: React.FC = () => {
 
   // Добавляем хук для блокировки прокрутки
   useScrollLock(activeSheet !== null);
+
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate('/login');
+  };
+
 
   const handleChange = async (field: string, value: string) => {
     dispatch(updateUserProfile({ [field]: value }));
@@ -124,6 +132,18 @@ export const UserProfile: React.FC = () => {
             rounded="bottom"
             onClick={() => navigate('/services')}
           />
+        </div>
+        <div>
+          {/* Logout button */}
+          <button 
+            onClick={handleLogout}
+            className="w-full flex items-center justify-between p-4 bg-white rounded-2xl hover:bg-gray-50 text-red-600"
+          >
+            <div className="flex items-center gap-3">
+              <ArrowRightStartOnRectangleIcon className="w-6 h-6" />
+              <span>Выйти</span>
+            </div>
+          </button>
         </div>
       </div>
 
