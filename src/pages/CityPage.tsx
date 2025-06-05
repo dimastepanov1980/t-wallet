@@ -57,7 +57,7 @@ const supermarkets = [
     id: 1,
     logo: (
       <img
-        src="/logos/As.png" 
+        src="/logos/CashBack/As.png" 
         className="w-16 h-16"
       />
     ),
@@ -95,7 +95,7 @@ const supermarkets = [
     id: 2,
     logo: (
       <img
-        src="/logos/OK.png" 
+        src="/logos/CashBack/OK.png" 
         className="w-16 h-16"
       />
     ),
@@ -110,7 +110,7 @@ const supermarkets = [
     id: 3,
     logo: (
       <img
-      src="/logos/BB.png" 
+      src="/logos/CashBack/BB.png" 
       className="w-16 h-16"
     />
   ),
@@ -120,6 +120,36 @@ const supermarkets = [
   products: [
   
   ],
+},
+{
+  id: 3,
+  logo: (
+    <img
+    src="/logos/CashBack/Ozon.png" 
+    className="w-16 h-16"
+  />
+),
+percent: 15,
+time: '120 МИН.',
+name: 'Ozon',
+products: [
+
+],
+},
+{
+  id: 3,
+  logo: (
+    <img
+    src="/logos/CashBack/DNS.png" 
+    className="w-16 h-16"
+  />
+),
+percent: 15,
+time: '60 МИН.',
+name: 'DNS',
+products: [
+
+],
 },
 ];
 

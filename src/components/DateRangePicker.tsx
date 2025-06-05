@@ -31,6 +31,7 @@ export const DateRangePicker = ({
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     const firstDayOfMonth = new Date(year, month, 1).getDay();
     const days = [];
+    const now = new Date();
 
     // Корректировка для недели, начинающейся с понедельника
     const firstDayIndex = firstDayOfMonth === 0 ? 6 : firstDayOfMonth - 1;
@@ -38,26 +39,32 @@ export const DateRangePicker = ({
     // Добавляем дни предыдущего месяца
     const prevMonthDays = new Date(year, month, 0).getDate();
     for (let i = firstDayIndex - 1; i >= 0; i--) {
+      const day = new Date(year, month - 1, prevMonthDays - i);
       days.push({
-        date: new Date(year, month - 1, prevMonthDays - i),
-        isCurrentMonth: false
+        date: day,
+        isCurrentMonth: false,
+        isDisabled: day > now
       });
     }
 
     // Добавляем дни текущего месяца
     for (let i = 1; i <= daysInMonth; i++) {
+      const day = new Date(year, month, i);
       days.push({
-        date: new Date(year, month, i),
-        isCurrentMonth: true
+        date: day,
+        isCurrentMonth: true,
+        isDisabled: day > now
       });
     }
 
     // Добавляем дни следующего месяца
     const remainingDays = 42 - days.length; // 6 недель по 7 дней
     for (let i = 1; i <= remainingDays; i++) {
+      const day = new Date(year, month + 1, i);
       days.push({
-        date: new Date(year, month + 1, i),
-        isCurrentMonth: false
+        date: day,
+        isCurrentMonth: false,
+        isDisabled: day > now
       });
     }
 
@@ -92,6 +99,13 @@ export const DateRangePicker = ({
     const year = currentMonth.getFullYear();
     const from = new Date(year, monthIndex, 1);
     const to = new Date(year, monthIndex + 1, 0);
+    const now = new Date();
+    
+    // Проверяем, не является ли выбранный месяц будущим
+    if (from > now) {
+      return;
+    }
+    
     setSelectedRange({ from, to });
     setCurrentMonth(from);
     setShowMonthPicker(false);
@@ -156,7 +170,15 @@ export const DateRangePicker = ({
   };
 
   const changeMonth = (increment: number) => {
-    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + increment, 1));
+    const newMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + increment, 1);
+    const now = new Date();
+    
+    // Проверяем, не пытаемся ли мы перейти к будущему месяцу
+    if (newMonth > now) {
+      return;
+    }
+    
+    setCurrentMonth(newMonth);
   };
 
   const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -194,18 +216,27 @@ export const DateRangePicker = ({
           <div className="mb-4">
             {/* Month Grid */}
             <div className="grid grid-cols-3 gap-2">
-              {monthNames.map((month, index) => (
-                <button
-                  key={month}
-                  onClick={() => handleMonthClick(index)}
-                  className={`
-                    p-2 rounded-xl text-sm focus:outline-none
-                    ${currentMonth.getMonth() === index ? 'bg-[#ffd42d] text-gray-900' : 'bg-white text-gray-500 hover:bg-[#ffd42d]'}
-                  `}
-                >
-                  {month}
-                </button>
-              ))}
+              {monthNames.map((month, index) => {
+                const year = currentMonth.getFullYear();
+                const monthDate = new Date(year, index, 1);
+                const now = new Date();
+                const isFutureMonth = monthDate > now;
+                
+                return (
+                  <button
+                    key={month}
+                    onClick={() => !isFutureMonth && handleMonthClick(index)}
+                    disabled={isFutureMonth}
+                    className={`
+                      p-2 rounded-xl text-sm focus:outline-none
+                      ${currentMonth.getMonth() === index ? 'bg-[#ffd42d] text-gray-900' : 'bg-white text-gray-500 hover:bg-[#ffd42d]'}
+                      ${isFutureMonth ? 'opacity-30 cursor-not-allowed' : ''}
+                    `}
+                  >
+                    {month}
+                  </button>
+                );
+              })}
             </div>
           </div>
         ) : (
@@ -221,10 +252,11 @@ export const DateRangePicker = ({
 
             {/* Calendar grid */}
             <div className="grid grid-cols-7 gap-1">
-              {getDaysInMonth(currentMonth).map(({ date, isCurrentMonth }, index) => (
+              {getDaysInMonth(currentMonth).map(({ date, isCurrentMonth, isDisabled }, index) => (
                 <button
                   key={index}
-                  onClick={() => handleDayClick(date)}
+                  onClick={() => !isDisabled && handleDayClick(date)}
+                  disabled={isDisabled}
                   className={`
                     h-8 w-8 rounded-full flex items-center justify-center text-xs focus:outline-none
                     ${!isCurrentMonth ? 'text-gray-400' : 'text-gray-900'}
@@ -236,7 +268,7 @@ export const DateRangePicker = ({
                         : 'bg-white'
                     }
                     ${!selectedRange.from && !isCurrentMonth ? 'opacity-50' : ''}
-                    hover:bg-[#ffd42d] transition-colors
+                    ${isDisabled ? 'opacity-30 cursor-not-allowed' : 'hover:bg-[#ffd42d] transition-colors'}
                   `}
                 >
                   {date.getDate()}

@@ -206,7 +206,7 @@ export const AccountDetailsPage: React.FC = () => {
           <h2 className="text-lg font-bold m-4 pt-4">Детали счета</h2>
           <button className="text-m font-light bg-transparent w-full flex items-center justify-between text-left"
           onClick={() => navigate('/transactions/generate')}>
-          <span>Лимиты на переводы,<br/>снятия и пополнения</span>
+          <span>Генерация транзакций, <br/>входящих и исходящих платежей</span>
             <ChevronRightIcon className="w-5 h-5 text-gray-400" />
           </button>
           <button className="text-m font-light bg-transparent w-full flex items-center justify-between  text-left">

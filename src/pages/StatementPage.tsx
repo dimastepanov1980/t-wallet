@@ -5,6 +5,8 @@ import { Account, User } from '../types/interface';
 import { PDFDocument, PDFPage, rgb, StandardFonts, PDFFont, PDFImage } from 'pdf-lib';
 import CyrillicToTranslit from 'cyrillic-to-translit-js';
 import { useNavigate } from 'react-router-dom';
+import { Header } from '../components/ui/Header';
+import { APP_IS_DEMO } from '../config';
 
 const cyrillicToTranslit = CyrillicToTranslit();
 
@@ -60,7 +62,9 @@ async function generateStatementPDF({ account, user, period, operationType, cust
   const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
   const logoPngBytes = await fetch('/template/logo.png').then(res => res.arrayBuffer());
-  const logoPng = await pdfDoc.embedPng(logoPngBytes);
+  const tbLogo = await fetch('/logos/Tb-Logo.png').then(res => res.arrayBuffer());
+  
+  const logoPng = await pdfDoc.embedPng(APP_IS_DEMO === 'true' ? tbLogo : logoPngBytes);
 
   const stampPngBytes = await fetch('/template/stamp.png').then(res => res.arrayBuffer());
   const stampPng = await pdfDoc.embedPng(stampPngBytes);
@@ -203,12 +207,13 @@ async function generateStatementPDF({ account, user, period, operationType, cust
   currentPage.drawText('Expenses:', { x: 55, y, size: 9, font, color: rgb(0,0,0) });
   currentPage.drawText(`-${Math.abs(totalOut).toFixed(2)} P`, { x: 100, y, size: 9, font, color: rgb(0,0,0) });
 
+  if (APP_IS_DEMO !== 'true') {
   y -= 45;
   currentPage.drawText('Best regards,', { x: 55, y, size: 9, font, color: rgb(0,0,0) });
   currentPage.drawText('Head of Back-office Department', { x: 55, y: y - 16, size: 9, font, color: rgb(0,0,0) });
   currentPage.drawText('E.S. Shadrina', { x: 450, y: y - 6, size: 9, font, color: rgb(0,0,0) });
   currentPage.drawImage(stampPng, { x: 350, y: y - 80, width: 190, height: 100 });
-
+  }
   // Добавляем footer на последнюю страницу
   drawFooter(currentPage, context, pageNumber, totalPages);
 
@@ -220,21 +225,27 @@ async function generateStatementPDF({ account, user, period, operationType, cust
 // Функция для отрисовки header на странице
 const drawHeader = (page: PDFPage, context: DrawContext, isFirstPage: boolean = false) => {
   const { logoPng, font } = context;
+  const name = APP_IS_DEMO === 'true' ? 'Tb-Wallet' : 'TBANK';
+  const address = APP_IS_DEMO === 'true' ? 'MOSCOW, 123456, RUSSIA.' : '38A, BLD. 26, 2 KHUTORSKAYA STREET, MOSCOW, 127287, RUSSIA.';
+  const phone = APP_IS_DEMO === 'true' ? 'TEL.: +7 (123) 456 7890' : 'TEL.: +7 (495) 648 1000, TBANK.RU.';
+
   if (isFirstPage) {
     page.drawImage(logoPng, { x: 55, y: 765, width: 45, height: 45 });
-    page.drawText("TBANK", { x: 300, y: 805, size: 7.5, font, color: rgb(0.7,0.7,0.7) });
-    page.drawText("38A, BLD. 26, 2 KHUTORSKAYA STREET, MOSCOW, 127287, RUSSIA.", { x: 300, y: 795, size: 7.5, font, color: rgb(0.7,0.7,0.7) });
-    page.drawText("TEL.: +7 (495) 648 1000, TBANK.RU.", { x: 300, y: 785, size: 7.5, font, color: rgb(0.7,0.7,0.7) });
+    page.drawText(name, { x: 300, y: 805, size: 7.5, font, color: rgb(0.7,0.7,0.7) });
+    page.drawText(address, { x: 300, y: 795, size: 7.5, font, color: rgb(0.7,0.7,0.7) });
+    page.drawText(phone, { x: 300, y: 785, size: 7.5, font, color: rgb(0.7,0.7,0.7) });
   }
 };
 
 // Функция для отрисовки footer на странице
 const drawFooter = (page: PDFPage, context: DrawContext, pageNumber: number, totalPages: number) => {
   const { font } = context;
+  const license = APP_IS_DEMO === 'true' ? '«Tb-Wallet» universal wallet from Russia' : '«TBank» universal license of Bank of Russia No 2673 c/a 30101810145250000974 Main Department Bank of Russia in the Central Federal District.';
+  const bic = APP_IS_DEMO === 'true' ? 'Only for Demo Use' : 'BIC 044525974';
   page.drawLine({start: { x: 55, y: 65 }, end: { x: 540, y: 65 }, thickness: 0.3, color: rgb(0.7, 0.7, 0.7), });
 
-  page.drawText("«TBank» universal license of Bank of Russia No 2673 c/a 30101810145250000974 Main Department Bank of Russia in the Central Federal District.", { x: 55, y: 55, size: 7.5, font, color: rgb(0.7,0.7,0.7) });
-  page.drawText("«BIC 044525974 TIC 7710140679 CRR 771301001", { x: 205, y: 40, size: 7.5, font, color: rgb(0.7,0.7,0.7) });
+  page.drawText(license, { x: 55, y: 55, size: 7.5, font, color: rgb(0.7,0.7,0.7) });
+  page.drawText(bic, { x: 205, y: 40, size: 7.5, font, color: rgb(0.7,0.7,0.7) });
   page.drawText(`${pageNumber} of ${totalPages}`, { x: 510, y: 40, size: 7.5, font, color: rgb(0.7,0.7,0.7) });
 };
 
@@ -280,8 +291,8 @@ export const StatementPage = () => {
 
   return (
     <div className="min-h-screen bg-white flex flex-col p-4">
-      <div className="text-2xl font-bold mb-6">Выписка по счету</div>
-      <div className="mb-4">
+      <Header title="Выписка по счету"  />
+      <div className="mb-4 pt-10">
         <div className="text-gray-600 mb-2">Выберите счет</div>
         <select
           className="w-full p-4 rounded-xl bg-gray-100 text-lg font-medium mb-2"
@@ -334,7 +345,7 @@ export const StatementPage = () => {
         )}
       </div>
       <button
-        className="w-full h-14 flex justify-center items-center rounded-xl text-m font-light text-black bg-[#ffdd2d] hover:bg-[#ffd42d] disabled:opacity-50 mt-auto"
+        className="fixed bottom-[100px] left-4 right-4 h-14 flex justify-center items-center rounded-xl text-m font-light text-black bg-[#ffdd2d] hover:bg-[#ffd42d] disabled:opacity-50 mt-auto"
         onClick={handleGenerate}
         disabled={loading}
       >

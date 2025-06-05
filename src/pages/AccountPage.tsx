@@ -116,7 +116,7 @@ export const AccountPage = () => {
                 value={formData.ownerName}
                 onChange={handleChange}
                 className="mt-1 block w-full rounded-xl bg-gray-50 border-0 py-3 px-4 text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-blue-600"
-                placeholder="Указать реальное имя владельца"
+                placeholder="Указать имя владельца"
                 required
               />
             </label>
@@ -131,7 +131,7 @@ export const AccountPage = () => {
                 value={formData.name}
                 onChange={handleChange}
                 className="mt-1 block w-full rounded-xl bg-gray-50 border-0 py-3 px-4 text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-blue-600"
-                placeholder="Указать название реального счета"
+                placeholder="Указать название счета"
                 required
               />
             </label>
@@ -162,7 +162,7 @@ export const AccountPage = () => {
                 value={formData.accountNumber}
                 onChange={handleChange}
                 className="mt-1 block w-full rounded-xl bg-gray-50 border-0 py-3 px-4 text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-blue-600"
-                placeholder="Указать номер реального счета"
+                placeholder="Указать номер счета"
                 required
                 maxLength={20}
                 pattern="\d{20}"
@@ -216,7 +216,7 @@ export const AccountPage = () => {
                         <div className="px-4 text-xs text-gray-500">
 
               <span>
-                Важно: Укажите реальные данные, эти данные будут использоваться для выписки по счету.
+                Важно: Укажите ваши данные, эти данные будут использоваться для выписки по счету.
                 <br/>
                 * Все данные хранятся только на вашем устройстве.
               </span>

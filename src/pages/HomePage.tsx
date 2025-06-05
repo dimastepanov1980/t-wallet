@@ -1,12 +1,16 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 
 import { useSelector } from 'react-redux';
 import { RootState } from '../store';
-import { MagnifyingGlassIcon, QrCodeIcon, ArrowPathIcon, PlusIcon, PhoneIcon } from '@heroicons/react/24/outline';
+import { MagnifyingGlassIcon, QrCodeIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 import { useNavigate } from 'react-router-dom';
 import { AccountCard } from '../components/AccountCard';
 import { Account, Card, Transaction } from '../types/interface';
 import { Operations } from '../components/Operations';
+import { getRandomLogos } from '../components/ui/CachBack';
+import { AddIcon } from '../components/ui/Add';
+import { SbrIcon } from '../components/ui/SBP';
+import { TransferIcon } from '../components/ui/Transfer';
 
 
 // Helper function to get current month in Russian
@@ -87,6 +91,8 @@ export const HomePage = () => {
     }).format(amount);
   };
 
+  const randomLogos = useMemo(() => getRandomLogos(4), []);
+
   return (
     <div className="flex flex-col gap-8 p-4 bg-gray-50">
       {/* Header with avatar and name */}
@@ -97,6 +103,7 @@ export const HomePage = () => {
           </span>
         </div>
         <span className="text-lg font-medium">{full_name || 'Name'}</span>
+        <ChevronRightIcon className="w-5 h-5 text-gray-400" />
         
       </div>
 
@@ -150,45 +157,50 @@ export const HomePage = () => {
         />
 
         {/* ToDo: Create new component "Cashback"  */}
-        <div className="bg-white rounded-2xl p-4 shadow-xl">
+        <div className="bg-white rounded-2xl p-4 shadow-xl"
+        onClick={() => navigate('/promotions')}        >
+          
             <h2 className="text-lg font-medium">
               Кэшбэк<br />и бонусы
             </h2>
             <div className="flex gap-4 mt-3">
-            {[1, 2, 3].map((_, i) => (
-                <div key={i} className="w-12 h-12 rounded-full bg-gray-100" />
-            ))}
+              {randomLogos.map((item) => (
+                <div key={item.id} className="w-12 h-12 rounded-full flex items-center justify-center overflow-hidden">
+                  {item.logo}
+                </div>
+              ))}
             </div>
         </div>
       </div>
 
       {/* Quick actions */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-4 gap-2">
         <div className="flex flex-col items-center gap-3"
         onClick={() => navigate(`/card-transfer/${rubleAccount.id}?type=outgoing`)}>
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center">
-            <PhoneIcon className="w-8 h-8 text-blue-600" />
+          <div className="w-full h-8 rounded-lg bg-gradient-to-br from-red-100/50 to-gray-200/50 flex items-center justify-center">
+          <SbrIcon className="w-6 h-6" />  
+            
           </div>
-          <span className="text-sm text-center text-gray-900">Перевести<br />по телефону</span>
+          <span className="text-xs text-center text-gray-900">Перевести<br />по телефону</span>
         </div>
-        <div className="flex flex-col items-center gap-3"
+        <div className="flex flex-col items-center gap-2"
         onClick={() => navigate(`/top-up/${rubleAccount.id}?type=incoming`)}>
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center">
-            <PlusIcon className="w-8 h-8 text-blue-600" />
+          <div className="w-full h-10 rounded-lg bg-gray-200/50 flex items-center justify-center">
+          <AddIcon className="w-6 h-6 text-blue-600" />
           </div>
-          <span className="text-sm text-center text-gray-900">Пополнить<br />{accountName}</span>
+          <span className="text-xs text-center text-gray-900">Пополнить<br />{accountName}</span>
         </div>
         <div className="flex flex-col items-center gap-3">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center">
-            <ArrowPathIcon className="w-8 h-8 text-blue-600" />
+          <div className="w-full h-10 rounded-lg bg-gray-200/50 flex items-center justify-center">
+            <TransferIcon className="w-6 h-6 text-blue-600" />
           </div>
-          <span className="text-sm text-center text-gray-900">Между<br />счетами</span>
+          <span className="text-xs text-center text-gray-900">Между<br />счетами</span>
         </div>
         <div className="flex flex-col items-center gap-3">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center">
-            <QrCodeIcon className="w-8 h-8 text-blue-600" />
+        <div className="w-full h-10 rounded-lg bg-gray-200/50 flex items-center justify-center">
+        <QrCodeIcon className="w-6 h-6 text-blue-600" />
           </div>
-          <span className="text-sm text-center text-gray-900">Сканировать<br />QR-код</span>
+          <span className="text-xs text-center text-gray-900">Сканировать<br />QR-код</span>
         </div>
       </div>
 

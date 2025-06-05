@@ -16,15 +16,15 @@ export class LocalStorageService {
     this.isDemoMode = false; // default value
   }
 
-  static getInstance(): LocalStorageService {
+  public static getInstance(): LocalStorageService {
     if (!LocalStorageService.instance) {
       LocalStorageService.instance = new LocalStorageService();
     }
     return LocalStorageService.instance;
   }
 
-  setDemoMode(isDemoMode: boolean) {
-    this.isDemoMode = isDemoMode;
+  public setDemoMode(isDemo: boolean) {
+    this.isDemoMode = isDemo;
   }
 
   private getStoresInstance() {

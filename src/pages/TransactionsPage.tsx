@@ -49,7 +49,8 @@ export const TransactionsPage = () => {
     startOfDay.setHours(0, 0, 0, 0);
     const endOfDay = new Date(dateRange.to);
     endOfDay.setHours(23, 59, 59, 999);
-    return transactionDate >= startOfDay && transactionDate <= endOfDay;
+    const now = new Date();
+    return transactionDate >= startOfDay && transactionDate <= endOfDay && transactionDate <= now;
   });
 
   const expenses = filteredTransactions
@@ -64,7 +65,11 @@ export const TransactionsPage = () => {
   const groupedTransactions: Record<string, Transaction[]> = filteredTransactions.reduce((groups: Record<string, Transaction[]>, transaction: Transaction) => {
     const date = new Date(transaction.date);
     const dateKey = date.toISOString().split('T')[0];
-    
+    // Skip future transactions
+    const now = new Date();
+    if (date > now) {
+      return groups;
+    }
     if (!groups[dateKey]) {
       groups[dateKey] = [];
     }

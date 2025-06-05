@@ -31,6 +31,7 @@ import { CityPage } from '../pages/CityPage';
 import { PaymentsPage } from '../pages/PaymentsPage';
 import { HowToBuy } from '../pages/HowToBuy';
 import { UserProfile } from '../pages/UserProfile';
+import { PromotionCards } from '../components/PromotionCards';
 
 // Временные компоненты для меню
 const AtmsPage = () => <div className="p-4">Страница банкоматов</div>;
@@ -201,6 +202,7 @@ export const AppRoutes = () => {
         <Route path="statement-created" element={isLoggedIn ? <StatementCreatedPage onSendEmail={()=>{}} onDone={()=>{}} /> : <Navigate to="/password" />} />
         <Route path="chat" element={isLoggedIn ? <ChatPage /> : <Navigate to="/password" />} />
         <Route path="user-profile" element={isLoggedIn ? <UserProfile /> : <Navigate to="/password" />} />
+        <Route path="promotions" element={isLoggedIn ? <PromotionCards /> : <Navigate to="/password" />} />
         {/* Новые маршруты для меню */}
         <Route path="atms" element={isLoggedIn ? <AtmsPage /> : <Navigate to="/password" />} />
         <Route path="security" element={isLoggedIn ? <SecurityPage /> : <Navigate to="/password" />} />

@@ -1,19 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
-import { setDemoMode } from '../store/slices/authSlice';
+import { setDemoMode, setUser, setIsLoggedIn } from '../store/slices/authSlice';
 import { useDeviceId } from '../hooks/useDeviceId';
 import { storageService } from '../services/storageService';
 import { generateExpectedCode } from '../utils/generateExpectedCode';
+import { LocalStorageService } from '../services/localStorageService';
+import { demoUser, demoAccounts } from '../store/demoData';
+import { fetchAccounts } from '../store/slices/accountSlice';
+import { AppDispatch } from '../store';
 
-const SECRET = 't-wallet-2024'; // ToDo: обфусцировать
+const SECRET = atob('dC13YWxsZXQtMjAyNA==');
 
 export const LoginPage = () => {
   const [code, setCode] = useState('');
   const [error, setError] = useState('');
   const [deviceId, setDeviceId] = useState<string | null>(null);
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
 
   const deviceIdHook = useDeviceId();
 
@@ -34,9 +38,37 @@ export const LoginPage = () => {
     }
   };
 
-  const handleDemo = () => {
-    dispatch(setDemoMode(true))
-    navigate('/home');
+  const handleDemo = async () => {
+    try {
+      // Устанавливаем демо-режим
+      dispatch(setDemoMode(true));
+      
+      // Устанавливаем демо-режим в LocalStorageService
+      const storageService = LocalStorageService.getInstance();
+      storageService.setDemoMode(true);
+      
+      // Сохраняем демо-счета в локальное хранилище
+      await storageService.saveAccounts(demoAccounts);
+      
+      // Загружаем счета в Redux
+      await dispatch(fetchAccounts()).unwrap();
+      
+      // Устанавливаем данные пользователя
+      dispatch(setUser({
+        id: demoUser.userId!,
+        phone: demoUser.phone!,
+        full_name: demoUser.full_name!,
+        email: demoUser.email!,
+        address: demoUser.address!
+      }));
+      dispatch(setIsLoggedIn(true));
+      
+      // Переходим на главную страницу
+      navigate('/home');
+    } catch (error) {
+      console.error('Error initializing demo mode:', error);
+      setError('Failed to initialize demo mode');
+    }
   };
 
   return (
@@ -51,7 +83,7 @@ export const LoginPage = () => {
       {/* Форма */}
       <div className="w-full px-4 flex-1 flex flex-col justify-center max-w-md mx-auto">
         <div>
-          <h1 className="text-2xl font-medium mb-8 flex justify-center items-center">Вход по коду активации</h1>
+          <h1 className="text-2xl font-medium mb-8 flex justify-center items-center">Вход в Tь-Wallet</h1>
           
           <div className="space-y-6">
             <div>
@@ -76,23 +108,24 @@ export const LoginPage = () => {
             >
               Войти
             </button>
+           
             <button
               type="button"
-              className="w-full h-14 flex justify-center items-center rounded-xl text-lg font-medium text-black bg-blue-100 hover:bg-blue-200"
+              className="w-full h-14 flex justify-center items-center rounded-xl text-lg font-medium text-black bg-gray-200 hover:bg-gray-300"
               onClick={() => navigate('/how-to-buy')}
             >
               Купить
             </button>
-            <button
-              type="button"
-              className="w-full h-14 flex justify-center items-center rounded-xl text-lg font-medium text-black bg-gray-200 hover:bg-gray-300"
-              onClick={handleDemo}
-            >
-              Демо
-            </button>
           </div>
         </div>
       </div>
+
+      <span
+        className="text-gray-500 text-center text-sm pb-10"
+        onClick={handleDemo}
+      >
+        Посмотреть демо
+      </span>
     </div>
   );
 }; 

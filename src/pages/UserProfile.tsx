@@ -51,7 +51,7 @@ export const UserProfile: React.FC = () => {
         
         <div>
           <MenuItem
-            icon={<img src="public/logos/T-User.png" className="w-9.5 h-9.5" />}
+            icon={<img src="/logos/T-User.png" className="w-9.5 h-9.5" />}
             title="Фамилия Имя"
             backgroundColor="bg-blue-500"
             textColor="text-white"
@@ -59,7 +59,7 @@ export const UserProfile: React.FC = () => {
             onClick={() => setActiveSheet('full_name')}
           />
           <MenuItem
-            icon={<img src="public/logos/T-Phone.png" className="w-9.5 h-9.5" />}
+            icon={<img src="/logos/T-Phone.png" className="w-9.5 h-9.5" />}
             title="Телефон"
             backgroundColor="bg-blue-500"
             textColor="text-white"
@@ -67,7 +67,7 @@ export const UserProfile: React.FC = () => {
             onClick={() => setActiveSheet('phone')}
           />
           <MenuItem
-            icon={<img src="public/logos/T-Email.png" className="w-9.5 h-9.5" />}
+            icon={<img src="/logos/T-Email.png" className="w-9.5 h-9.5" />}
             title="Почта"
             backgroundColor="bg-blue-500"
             textColor="text-white"
@@ -75,7 +75,7 @@ export const UserProfile: React.FC = () => {
             onClick={() => setActiveSheet('email')}
           />
           <MenuItem
-            icon={<img src="public/logos/T-Adress.png" className="w-9.5 h-9.5" />}
+            icon={<img src="/logos/T-Adress.png" className="w-9.5 h-9.5" />}
             title="Адрес"
             backgroundColor="bg-blue-500"
             textColor="text-white"
@@ -83,7 +83,7 @@ export const UserProfile: React.FC = () => {
             onClick={() => setActiveSheet('address')}
           />
            <MenuItem
-          icon={<img src="public/logos/T-GUslugi.png" className="w-9.5 h-9.5" />}
+          icon={<img src="/logos/T-GUslugi.png" className="w-9.5 h-9.5" />}
           title="Госуслуги"
           backgroundColor="bg-blue-500"
           textColor="text-white"
@@ -91,7 +91,7 @@ export const UserProfile: React.FC = () => {
           onClick={() => navigate('/orders')}
         />
         <MenuItem
-          icon={<img src="public/logos/T-Samozan.png" className="w-9.5 h-9.5" />}
+          icon={<img src="/logos/T-Samozan.png" className="w-9.5 h-9.5" />}
           title="Самозанятость"
           backgroundColor="bg-blue-500"
           textColor="text-white"
@@ -99,7 +99,7 @@ export const UserProfile: React.FC = () => {
           onClick={() => navigate('/certificates')}
         />
         <MenuItem
-          icon={<img src="public/logos/T-Pensia.png" className="w-9.5 h-9.5" />}
+          icon={<img src="/logos/T-Pensia.png" className="w-9.5 h-9.5" />}
           title="Пенсия на карту"
           backgroundColor="bg-blue-500"
           textColor="text-white"
@@ -109,7 +109,7 @@ export const UserProfile: React.FC = () => {
         </div>
         <div>
           <MenuItem
-            icon={<img src="public/logos/T-Bisness.png" className="w-9.5 h-9.5" />}
+            icon={<img src="/logos/T-Bisness.png" className="w-9.5 h-9.5" />}
             title="T-Бизнес"
             backgroundColor="bg-blue-500"
             textColor="text-white"
@@ -117,7 +117,7 @@ export const UserProfile: React.FC = () => {
             onClick={() => navigate('/settings')}
           />
           <MenuItem
-            icon={<img src="public/logos/T-Mobile.png" className="w-9.5 h-9.5" />}
+            icon={<img src="/logos/T-Mobile.png" className="w-9.5 h-9.5" />}
             title="Т-Мобайл"
             backgroundColor="bg-blue-500"
             textColor="text-white"
@@ -125,7 +125,7 @@ export const UserProfile: React.FC = () => {
             onClick={() => navigate('/shared-access')}
           />
           <MenuItem
-            icon={<img src="public/logos/T-Invest.png" className="w-9.5 h-9.5" />}
+            icon={<img src="/logos/T-Invest.png" className="w-9.5 h-9.5" />}
             title="Т-инвестиции"
             backgroundColor="bg-blue-500"
             textColor="text-white"
