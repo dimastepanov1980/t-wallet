@@ -22,12 +22,11 @@ self.addEventListener('install', (event) => {
     caches.open(CACHE_NAME)
       .then((cache) => {
         // Сначала кэшируем основные файлы
-        return cache.addAll([
+        const urlsToCache = [
           './',
           './index.html',
           './manifest.json',
-          // Используем iOS иконки как основные
-          './ios/32.png',  // для favicon
+          './ios/32.png',
           './ios/72.png',
           './ios/96.png',
           './ios/128.png',
@@ -36,22 +35,56 @@ self.addEventListener('install', (event) => {
           './ios/192.png',
           './ios/256.png',
           './ios/512.png',
-          // Добавляем ссылку на favicon
-          { './favicon.ico': './ios/32.png'}
-        ]);
+        ];
+
+        // Кэшируем каждый файл отдельно с обработкой ошибок
+        return Promise.all(
+          urlsToCache.map(url => {
+            return fetch(url)
+              .then(response => {
+                if (!response.ok) {
+                  throw new Error(`Failed to fetch ${url}: ${response.status} ${response.statusText}`);
+                }
+                return cache.put(url, response);
+              })
+              .catch(error => {
+                console.error(`Error caching ${url}:`, error);
+                // Продолжаем выполнение даже если один файл не удалось кэшировать
+                return Promise.resolve();
+              });
+          })
+        );
       })
       .then(async () => {
         // Затем пытаемся закэшировать все assets
         const cache = await caches.open(CACHE_NAME);
         try {
           const response = await fetch('./asset-manifest.json');
+          if (!response.ok) {
+            throw new Error(`Failed to fetch asset-manifest.json: ${response.status} ${response.statusText}`);
+          }
           const assets = await response.json();
           const urlsToCache = Object.values(assets);
           console.log('asset-manifest', assets);
-          return await cache.addAll(urlsToCache);
-
+          
+          // Кэшируем каждый asset отдельно с обработкой ошибок
+          return Promise.all(
+            urlsToCache.map(url => {
+              return fetch(url)
+                .then(response => {
+                  if (!response.ok) {
+                    throw new Error(`Failed to fetch ${url}: ${response.status} ${response.statusText}`);
+                  }
+                  return cache.put(url, response);
+                })
+                .catch(error => {
+                  console.error(`Error caching ${url}:`, error);
+                  return Promise.resolve();
+                });
+            })
+          );
         } catch (error) {
-          console.log('[ServiceWorker] No asset-manifest found');
+          console.log('[ServiceWorker] No asset-manifest found or error:', error);
         }
       })
   );
